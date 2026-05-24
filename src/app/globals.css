@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #080707;
-  --color-bg-elevated: #101011;
-  --color-surface: #171415;
-  --color-surface-2: #211c1c;
-  --color-border: #2a2526;
-  --color-border-strong: #523034;
+  --color-bg: #0a0808;
+  --color-bg-elevated: #121011;
+  --color-surface: #181314;
+  --color-surface-2: #24191a;
+  --color-border: #302528;
+  --color-border-strong: #613036;
 
-  --color-fg: #f8f2f2;
-  --color-fg-muted: #b9adad;
-  --color-fg-subtle: #807575;
+  --color-fg: #fbf3f0;
+  --color-fg-muted: #c7b8b4;
+  --color-fg-subtle: #8e7d7a;
 
-  --color-accent: #d84a3a;
-  --color-accent-soft: #ef6756;
-  --color-accent-ink: #190708;
+  --color-accent: #df4438;
+  --color-accent-soft: #f06558;
+  --color-accent-ink: #200707;
 
   --color-warn: #f08a4b;
   --color-danger: #ff4d4d;
   --color-success: #63b37b;
 
-  --font-display: "Segoe UI Variable Display", "Aptos Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Segoe UI Variable Text", Aptos, Satoshi, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Aptos Display", "Segoe UI Variable Display", "Satoshi", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body: Aptos, "Segoe UI Variable Text", "Satoshi", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "SF Mono", Consolas, ui-monospace, Menlo, monospace;
 
   --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
@@ -60,9 +60,10 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 14% 7%, rgba(216, 74, 58, 0.2), transparent 27rem),
-    radial-gradient(circle at 82% 18%, rgba(248, 242, 242, 0.07), transparent 34rem),
-    linear-gradient(180deg, #111010 0%, #080707 46%, #131010 100%);
+    radial-gradient(circle at 11% 8%, rgba(223, 68, 56, 0.24), transparent 30rem),
+    radial-gradient(circle at 78% 10%, rgba(251, 243, 240, 0.08), transparent 34rem),
+    radial-gradient(circle at 63% 68%, rgba(97, 48, 54, 0.18), transparent 28rem),
+    linear-gradient(180deg, #151011 0%, #090808 43%, #130d0e 100%);
 }
 
 body::before {
@@ -72,11 +73,22 @@ body::before {
   pointer-events: none;
   opacity: 0.12;
   background-image:
-    radial-gradient(circle at 30% 10%, rgba(255,255,255,0.055) 0 1px, transparent 1px),
+    radial-gradient(circle at 30% 10%, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px),
     linear-gradient(rgba(248, 242, 242, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(248, 242, 242, 0.06) 1px, transparent 1px);
   background-size: 19px 19px, 72px 72px, 72px 72px;
   mask-image: linear-gradient(to bottom, black, transparent 70%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(115deg, transparent 0 44%, rgba(223, 68, 56, 0.08) 44.2% 44.6%, transparent 44.8%),
+    linear-gradient(115deg, transparent 0 64%, rgba(251, 243, 240, 0.04) 64.2% 64.45%, transparent 64.7%);
 }
 
 ::selection {
@@ -136,7 +148,7 @@ textarea:focus-visible {
 
 @utility container-tight {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1320px;
   margin-inline: auto;
   padding-inline: clamp(1rem, 4vw, 2.5rem);
 }
@@ -152,9 +164,34 @@ textarea:focus-visible {
 @utility panel {
   border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
     var(--color-bg-elevated);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 26px 90px rgba(0, 0, 0, 0.28);
+}
+
+@utility premium-shell {
+  border: 1px solid rgba(251, 243, 240, 0.09);
+  background:
+    linear-gradient(135deg, rgba(251, 243, 240, 0.09), transparent 28%),
+    radial-gradient(circle at 76% 18%, rgba(223, 68, 56, 0.2), transparent 20rem),
+    linear-gradient(180deg, rgba(21, 16, 17, 0.96), rgba(9, 8, 8, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(223, 68, 56, 0.1),
+    0 40px 130px rgba(0, 0, 0, 0.42);
+}
+
+@utility hairline-card {
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.014));
+}
+
+@utility field-surface {
+  border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
+  background: rgba(8, 7, 7, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 @keyframes pulse-dot {
@@ -242,4 +279,15 @@ textarea:focus-visible {
 .hero-wordmark {
   -webkit-text-stroke: 1px rgba(248, 242, 242, 0.12);
   color: transparent;
+}
+
+.vehicle-scan-grid {
+  background-image:
+    linear-gradient(90deg, rgba(251, 243, 240, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(251, 243, 240, 0.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+.clip-dashboard {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 28px) 100%, 0 100%);
 }

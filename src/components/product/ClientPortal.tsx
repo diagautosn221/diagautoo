@@ -119,18 +119,21 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
   return (
     <main className="min-h-[100dvh] overflow-hidden py-8">
       <div className="container-tight">
-        <section className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-          <div className="panel relative overflow-hidden rounded-[30px] p-6 md:p-8">
+        <section className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
+          <div className="premium-shell relative overflow-hidden rounded-[34px] p-6 md:p-8">
             <div className="pointer-events-none absolute -right-24 top-10 size-72 rounded-full border border-[var(--color-accent)]/20" />
             <div className="pointer-events-none absolute -right-12 top-28 size-44 rounded-full border border-[var(--color-accent)]/35" />
+            <div className="pointer-events-none absolute bottom-5 right-6 font-display text-[5rem] font-black leading-none tracking-[-0.08em] text-white/[0.03] md:text-[7rem]">
+              CLIENT
+            </div>
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
               compte client connecte
             </p>
-            <h1 className="mt-4 text-balance text-4xl font-black leading-[0.9] tracking-[-0.06em] md:text-6xl">
-              {clientName}, votre {vehicleLabel} parle au garage.
+            <h1 className="mt-4 max-w-[11ch] text-balance font-display text-5xl font-black leading-[0.82] tracking-[-0.075em] md:text-7xl">
+              {clientName}, votre voiture parle.
             </h1>
-            <p className="mt-6 max-w-xl text-pretty leading-8 text-[var(--color-fg-muted)]">
-              Les alertes legales, la vidange, les signaux IoT, les devis et les paiements viennent de la base locale.
+            <p className="mt-6 max-w-xl text-pretty text-sm leading-7 text-[var(--color-fg-muted)] md:text-base">
+              {vehicleLabel} remonte ses alertes, documents, devis et paiements depuis le compte client.
             </p>
 
             <AnimatePresence>
@@ -151,7 +154,17 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
               </div>
             ) : null}
 
-            <div className="relative mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-border)]">
+            <div className="relative mt-8 overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[#080708] p-5 vehicle-scan-grid">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(223,68,56,0.16),transparent_35%)]" />
+              <div className="relative mx-auto h-32 max-w-[360px]">
+                <div className="absolute inset-x-[8%] top-[28%] h-[44%] rounded-[50%_50%_18%_18%] border border-[var(--color-accent)]/50 bg-[linear-gradient(180deg,rgba(223,68,56,0.2),rgba(223,68,56,0.05))]" />
+                <div className="absolute bottom-[19%] left-[19%] size-9 rounded-full border-[8px] border-[#050505] bg-[var(--color-border-strong)]" />
+                <div className="absolute bottom-[19%] right-[19%] size-9 rounded-full border-[8px] border-[#050505] bg-[var(--color-border-strong)]" />
+                <span className="scan-line absolute left-1/2 top-0 h-10 w-[78%] -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,rgba(223,68,56,0.0),rgba(223,68,56,0.22),rgba(223,68,56,0.0))]" />
+              </div>
+            </div>
+
+            <div className="relative mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-border)]">
               {[
                 `Score ${vehicle?.healthScore ?? 0}`,
                 vehicle?.plate || "DK 4582 AA",
@@ -188,7 +201,7 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
                 })
               }
               disabled={busyAction === "callback" || !vehicle?.id}
-              className="mt-8 min-h-12 w-full rounded-[14px] bg-[var(--color-accent)] px-4 font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-8 min-h-12 w-full rounded-[16px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.24)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busyAction === "callback" ? "Envoi..." : "Demander un rappel atelier"}
             </button>

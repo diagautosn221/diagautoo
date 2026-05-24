@@ -220,6 +220,58 @@ function SkeletonConsole() {
   );
 }
 
+function VehicleCommandStage({
+  priorityAlerts,
+  connectedDevices,
+}: {
+  priorityAlerts: Overview["alerts"];
+  connectedDevices: number;
+}) {
+  return (
+    <div className="relative min-h-[360px] overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[#080708] p-5 vehicle-scan-grid md:min-h-[430px]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(223,68,56,0.18),transparent_32%),linear-gradient(180deg,transparent,rgba(0,0,0,0.48))]" />
+      <div className="absolute left-5 top-5 rounded-[12px] border border-[var(--color-border)] bg-black/24 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-muted)] backdrop-blur">
+        {connectedDevices} capteurs actifs
+      </div>
+      <div className="absolute right-5 top-5 rounded-[12px] border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-accent)] backdrop-blur">
+        scan continu
+      </div>
+
+      <div className="absolute left-1/2 top-[52%] h-[38%] w-[82%] -translate-x-1/2 -translate-y-1/2">
+        <div className="absolute inset-x-[10%] top-[19%] h-[44%] rounded-[50%_50%_18%_18%] border border-[var(--color-accent)]/55 bg-[linear-gradient(180deg,rgba(223,68,56,0.24),rgba(223,68,56,0.05))] shadow-[inset_0_1px_0_rgba(255,255,255,0.11)]" />
+        <div className="absolute left-[22%] top-[31%] h-[31%] w-[20%] -skew-x-12 border border-[var(--color-accent)]/25 bg-[#111]" />
+        <div className="absolute right-[22%] top-[31%] h-[31%] w-[20%] skew-x-12 border border-[var(--color-accent)]/25 bg-[#111]" />
+        <div className="absolute bottom-[16%] left-[21%] size-12 rounded-full border-[10px] border-[#050505] bg-[var(--color-border-strong)]" />
+        <div className="absolute bottom-[16%] right-[21%] size-12 rounded-full border-[10px] border-[#050505] bg-[var(--color-border-strong)]" />
+        <div className="scan-line absolute left-1/2 top-0 h-14 w-[86%] -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,rgba(223,68,56,0.0),rgba(223,68,56,0.22),rgba(223,68,56,0.0))]" />
+      </div>
+
+      {visualMarkers.map((marker) => (
+        <div key={marker.label} className="absolute" style={{ left: marker.x, top: marker.y }}>
+          <span className={`block size-2 rounded-full ${marker.tone} shadow-[0_0_0_7px_rgba(223,68,56,0.09)] live-dot`} />
+          <span className="mt-2 block -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+            {marker.label}
+          </span>
+        </div>
+      ))}
+
+      <div className="absolute inset-x-5 bottom-5 grid gap-2 sm:grid-cols-3">
+        {priorityAlerts.slice(0, 3).map((alert) => (
+          <div key={alert.id} className="rounded-[14px] border border-[var(--color-border)] bg-black/28 p-3 backdrop-blur-md">
+            <div className="font-mono text-[9px] uppercase tracking-[0.13em] text-[var(--color-accent)]">{alert.type}</div>
+            <div className="mt-2 truncate text-xs font-semibold text-[var(--color-fg)]">{alert.label}</div>
+          </div>
+        ))}
+        {priorityAlerts.length === 0 ? (
+          <div className="rounded-[14px] border border-[var(--color-success)]/35 bg-[var(--color-success)]/10 p-3 text-xs font-semibold text-[var(--color-success)] sm:col-span-3">
+            Aucun blocage critique detecte.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function OperationsConsole() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("atelier");
@@ -398,57 +450,67 @@ export function OperationsConsole() {
       <div className="pointer-events-none absolute inset-y-0 left-[7vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-70 lg:block" />
       <div className="pointer-events-none absolute inset-y-0 right-[18vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-40 lg:block" />
       <div className="container-tight">
-        <div className="mb-8 grid gap-6 md:grid-cols-[0.86fr_1.14fr] md:items-end">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              centre de controle - garage connecte
-            </p>
-            <h2 className="mt-3 max-w-[12ch] text-balance text-4xl font-semibold leading-[0.88] tracking-[-0.065em] md:text-6xl">
-              Decide. Repare. Encaisse.
-            </h2>
-            <p className="mt-5 max-w-xl text-pretty text-sm leading-7 text-[var(--color-fg-muted)] md:text-base">
-              Une seule surface pour savoir quoi traiter, quel client rappeler,
-              quel vehicule bloquer et combien le garage doit encaisser.
-            </p>
-          </div>
-          <div className="grid gap-3 rounded-[24px] border border-[var(--color-border)] bg-[#09090b]/72 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] md:grid-cols-[1fr_auto] md:items-center">
-            <div className="grid grid-cols-3 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)]">
-              {[
-                ["Clients", overview.summary.clients],
-                ["Vehicules", overview.summary.vehicles],
-                ["Capteurs", overview.summary.connectedDevices],
-              ].map(([label, value]) => (
-                <div key={label} className="bg-[#0d0d10] px-4 py-4">
-                  <div className="tabular font-mono text-xl font-semibold">{value}</div>
-                  <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                    {label}
+        <div className="premium-shell clip-dashboard mb-7 overflow-hidden rounded-[34px]">
+          <div className="grid gap-px bg-[var(--color-border)]/70 lg:grid-cols-[0.88fr_1.12fr]">
+            <div className="relative overflow-hidden bg-[#0d0a0b] p-5 md:p-8 lg:p-10">
+              <div className="pointer-events-none absolute -left-12 top-10 h-48 w-48 rounded-full border border-[var(--color-accent)]/20" />
+              <div className="pointer-events-none absolute bottom-5 right-6 font-display text-[5.8rem] font-black leading-none tracking-[-0.08em] text-white/[0.025] md:text-[8rem]">
+                DASN
+              </div>
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
+                cockpit garage connecte
+              </p>
+              <h2 className="mt-5 max-w-[11ch] text-balance font-display text-5xl font-black leading-[0.82] tracking-[-0.075em] md:text-7xl">
+                Atelier en mode commande.
+              </h2>
+              <p className="mt-6 max-w-lg text-pretty text-sm leading-7 text-[var(--color-fg-muted)] md:text-base">
+                Les priorites atelier, les capteurs IoT, les rappels client et l'argent a encaisser
+                sont visibles sans quitter le premier ecran.
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={createDiagnostic}
+                  disabled={isCreating}
+                  className="min-h-13 rounded-[16px] bg-[var(--color-accent)] px-5 text-sm font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.24)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isCreating ? "Creation..." : "Ouvrir diagnostic"}
+                </button>
+                <button
+                  type="button"
+                  onClick={ingestIotSignal}
+                  disabled={isSendingIot}
+                  className="min-h-13 rounded-[16px] border border-[var(--color-border)] bg-white/[0.045] px-5 text-sm font-black text-[var(--color-fg)] transition duration-200 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSendingIot ? "Signal..." : "Injecter signal IoT"}
+                </button>
+              </div>
+
+              <div className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-[22px] border border-[var(--color-border)] bg-[var(--color-border)]">
+                {[
+                  ["Clients", overview.summary.clients],
+                  ["Vehicules", overview.summary.vehicles],
+                  ["Capteurs", overview.summary.connectedDevices],
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-[#120f10] p-4">
+                    <div className="tabular font-mono text-2xl font-black text-[var(--color-fg)]">{value}</div>
+                    <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
+                      {label}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 md:min-w-[360px]">
-              <button
-                type="button"
-                onClick={createDiagnostic}
-                disabled={isCreating}
-                className="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-[var(--color-accent-ink)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isCreating ? "Creation..." : "Diagnostic live"}
-              </button>
-              <button
-                type="button"
-                onClick={ingestIotSignal}
-                disabled={isSendingIot}
-                className="inline-flex min-h-12 items-center justify-center rounded-[14px] border border-[var(--color-border)] bg-white/[0.035] px-4 text-sm font-semibold text-[var(--color-fg)] transition duration-200 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSendingIot ? "Signal..." : "Simuler IoT"}
-              </button>
+
+            <div className="bg-[#090808] p-3 md:p-5">
+              <VehicleCommandStage priorityAlerts={priorityAlerts} connectedDevices={overview.summary.connectedDevices} />
             </div>
           </div>
         </div>
 
-        <div className="mb-5 grid gap-px overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-[1.25fr_0.9fr_0.9fr_0.9fr]">
-          <article className="bg-[#0b0a0b] p-4 md:p-5">
+        <div className="mb-5 grid gap-px overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-[1.25fr_0.9fr_0.9fr_0.9fr]">
+          <article className="bg-[#0f0b0c] p-4 md:p-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">decision maintenant</p>
             <h3 className="mt-3 text-xl font-black tracking-[-0.04em] md:text-2xl">
               {criticalAlert ? criticalAlert.label : "Aucune alerte bloquante"}
@@ -459,12 +521,12 @@ export function OperationsConsole() {
                 : "L'atelier peut se concentrer sur les devis et les livraisons."}
             </p>
           </article>
-          {[
+          {[ 
             ["A encaisser", `${cashToCollect.toLocaleString("fr-FR")} F`],
             ["Inspections bloquees", blockedInspections],
             ["Equipe mobilisee", `${busyTeam}/${overview.team.length}`],
           ].map(([label, value]) => (
-            <article key={label} className="bg-[#100e0f] p-4 md:p-5">
+            <article key={label} className="bg-[#141011] p-4 md:p-6">
               <div className="tabular font-mono text-2xl font-semibold text-[var(--color-accent)]">{value}</div>
               <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
                 {label}
