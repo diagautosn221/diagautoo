@@ -1,0 +1,14 @@
+.next
+.claude
+node_modules
+data/*.sqlite
+data/*.sqlite-*
+*.log
+.playwright-mcp
+*.err
+*.err.log
+*.tsbuildinfo
+*.png
+open-design
+open-design-main
+open-design-main.zip

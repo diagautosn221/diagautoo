@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #080707;
+  --color-bg-elevated: #101011;
+  --color-surface: #171415;
+  --color-surface-2: #211c1c;
+  --color-border: #2a2526;
+  --color-border-strong: #523034;
+
+  --color-fg: #f8f2f2;
+  --color-fg-muted: #b9adad;
+  --color-fg-subtle: #807575;
+
+  --color-accent: #d84a3a;
+  --color-accent-soft: #ef6756;
+  --color-accent-ink: #190708;
+
+  --color-warn: #f08a4b;
+  --color-danger: #ff4d4d;
+  --color-success: #63b37b;
+
+  --font-display: "Segoe UI Variable Display", "Aptos Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Segoe UI Variable Text", Aptos, Satoshi, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SF Mono", Consolas, ui-monospace, Menlo, monospace;
+
+  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-base: 260ms;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 14% 7%, rgba(216, 74, 58, 0.2), transparent 27rem),
+    radial-gradient(circle at 82% 18%, rgba(248, 242, 242, 0.07), transparent 34rem),
+    linear-gradient(180deg, #111010 0%, #080707 46%, #131010 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image:
+    radial-gradient(circle at 30% 10%, rgba(255,255,255,0.055) 0 1px, transparent 1px),
+    linear-gradient(rgba(248, 242, 242, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(248, 242, 242, 0.06) 1px, transparent 1px);
+  background-size: 19px 19px, 72px 72px, 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@utility container-tight {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility text-pretty {
+  text-wrap: pretty;
+}
+
+@utility panel {
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    var(--color-bg-elevated);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.58;
+    transform: scale(0.82);
+  }
+}
+
+.live-dot {
+  animation: pulse-dot 1.8s var(--ease-signature) infinite;
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  14%,
+  78% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(640%);
+    opacity: 0;
+  }
+}
+
+@keyframes road-flow {
+  0% {
+    transform: translateY(-18px);
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.48;
+  }
+  100% {
+    transform: translateY(18px);
+    opacity: 0.15;
+  }
+}
+
+@keyframes gauge-sweep {
+  0%,
+  100% {
+    transform: rotate(-36deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes float-panel {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+.scan-line {
+  animation: scan-line 4.6s var(--ease-signature) infinite;
+}
+
+.road-flow {
+  animation: road-flow 3.8s var(--ease-signature) infinite;
+}
+
+.gauge-sweep {
+  transform-origin: 50% 88%;
+  animation: gauge-sweep 5.2s var(--ease-signature) infinite;
+}
+
+.float-panel {
+  animation: float-panel 5.8s var(--ease-signature) infinite;
+}
+
+.hero-wordmark {
+  -webkit-text-stroke: 1px rgba(248, 242, 242, 0.12);
+  color: transparent;
+}
