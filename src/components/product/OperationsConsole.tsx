@@ -206,6 +206,49 @@ function severityClass(severity: string) {
   return "border-[var(--color-success)]/35 bg-[var(--color-success)]/10 text-[var(--color-success)]";
 }
 
+function statusLabel(status: string) {
+  const value = status.toLowerCase();
+  if (value === "bloquante" || value === "blocked") return "Blocage";
+  if (value === "urgent") return "Urgent";
+  if (value === "watch") return "Surveillance";
+  if (value === "disponible") return "Libre";
+  if (value === "en_cours") return "En cours";
+  if (value === "approuve") return "Approuve";
+  if (value === "envoye") return "Envoye";
+  return status.replaceAll("_", " ");
+}
+
+function SectionHeader({ eyebrow, title, action }: { eyebrow: string; title: string; action?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">{eyebrow}</p>
+        <h3 className="mt-2 text-xl font-black tracking-[-0.045em]">{title}</h3>
+      </div>
+      {action ? (
+        <span className="rounded-[10px] border border-[var(--color-border)] bg-white/[0.035] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
+          {action}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function SignalBars({ status }: { status: string }) {
+  const activeBars = status === "blocked" ? 5 : status === "urgent" ? 4 : status === "watch" ? 3 : 2;
+  return (
+    <div className="flex h-8 items-end gap-1">
+      {[1, 2, 3, 4, 5].map((bar) => (
+        <span
+          key={bar}
+          className={`w-1.5 rounded-full transition ${bar <= activeBars ? "bg-[var(--color-accent)]" : "bg-white/10"}`}
+          style={{ height: `${10 + bar * 4}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function SkeletonConsole() {
   return (
     <section className="panel rounded-[28px] p-5 md:p-7">
@@ -607,15 +650,16 @@ export function OperationsConsole() {
                   transition={{ duration: 0.26, ease: easings.signature }}
                 >
                   {activeTab === "atelier" ? (
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
                       <form
                         onSubmit={createReception}
-                        className="rounded-[20px] border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/8 p-4"
+                        className="relative overflow-hidden rounded-[24px] border border-[var(--color-accent)]/35 bg-[linear-gradient(135deg,rgba(223,68,56,0.16),rgba(255,255,255,0.025)_42%,rgba(8,7,7,0.88))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                       >
-                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                          <div>
+                        <div className="pointer-events-none absolute -right-14 -top-16 size-40 rounded-full border border-[var(--color-accent)]/20" />
+                        <div className="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                          <div className="max-w-xl">
                             <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-accent)]">
-                              reception fonctionnelle
+                              reception garage
                             </p>
                             <h3 className="mt-2 text-xl font-black tracking-[-0.04em]">Créer une arrivée atelier</h3>
                             <p className="mt-1 text-sm leading-6 text-[var(--color-fg-muted)]">
@@ -625,12 +669,12 @@ export function OperationsConsole() {
                           <button
                             type="submit"
                             disabled={busyAction === "create_reception"}
-                            className="min-h-11 rounded-[12px] bg-[var(--color-accent)] px-4 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:opacity-60"
+                            className="min-h-12 rounded-[14px] bg-[var(--color-accent)] px-5 text-sm font-black text-[var(--color-accent-ink)] shadow-[0_18px_44px_rgba(223,68,56,0.20)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:opacity-60"
                           >
                             {busyAction === "create_reception" ? "Création..." : "Enregistrer"}
                           </button>
                         </div>
-                        <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <div className="relative mt-5 grid gap-3 md:grid-cols-3">
                           {[
                             ["clientName", "Client"],
                             ["phone", "Téléphone"],
@@ -648,7 +692,7 @@ export function OperationsConsole() {
                                 onChange={(event) =>
                                   setReceptionForm((form) => ({ ...form, [name as keyof ReceptionForm]: event.target.value }))
                                 }
-                                className="min-h-11 rounded-[12px] border border-[var(--color-border)] bg-[#08080a] px-3 text-sm outline-none transition focus:border-[var(--color-accent)]"
+                                className="field-surface min-h-12 rounded-[12px] px-3 text-sm outline-none transition focus:border-[var(--color-accent)]"
                               />
                             </label>
                           ))}
@@ -659,45 +703,70 @@ export function OperationsConsole() {
                             <input
                               value={receptionForm.operation}
                               onChange={(event) => setReceptionForm((form) => ({ ...form, operation: event.target.value }))}
-                              className="min-h-11 rounded-[12px] border border-[var(--color-border)] bg-[#08080a] px-3 text-sm outline-none transition focus:border-[var(--color-accent)]"
+                              className="field-surface min-h-12 rounded-[12px] px-3 text-sm outline-none transition focus:border-[var(--color-accent)]"
                             />
                           </label>
                         </div>
                       </form>
-                      <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
-                        <div className="rounded-[18px] border border-[var(--color-border)] bg-white/[0.025] p-4">
-                          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                            equipe en baie
-                          </p>
-                          <div className="mt-3 grid gap-2">
+                      <div className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
+                        <div className="hairline-card rounded-[22px] p-4">
+                          <SectionHeader eyebrow="dispatch" title="Equipe en baie" action={`${busyTeam}/${overview.team.length}`} />
+                          <div className="mt-5 grid gap-2">
                             {overview.team.map((member) => (
-                              <div key={member.id} className="grid gap-2 border-t border-[var(--color-border)] pt-3 first:border-t-0 first:pt-0">
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="font-semibold tracking-[-0.02em]">{member.fullName}</span>
-                                  <span className="font-mono text-[10px] text-[var(--color-accent)]">{member.bay}</span>
+                              <article key={member.id} className="field-surface rounded-[16px] p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <span className="font-semibold tracking-[-0.02em]">{member.fullName}</span>
+                                    <p className="mt-1 text-xs text-[var(--color-fg-muted)]">{member.role}</p>
+                                  </div>
+                                  <span className="rounded-[8px] border border-[var(--color-border)] px-2 py-1 font-mono text-[10px] text-[var(--color-accent)]">
+                                    {member.bay}
+                                  </span>
                                 </div>
-                                <p className="text-xs text-[var(--color-fg-muted)]">
-                                  {member.role} - {member.status}
-                                </p>
-                              </div>
+                                <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-3">
+                                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">
+                                    {statusLabel(member.status)}
+                                  </span>
+                                  <span className="max-w-[12rem] truncate text-right text-xs text-[var(--color-fg-muted)]">
+                                    {member.currentOperation || "En attente"}
+                                  </span>
+                                </div>
+                              </article>
                             ))}
                           </div>
                         </div>
-                        <div className="rounded-[18px] border border-[var(--color-border)] bg-white/[0.025] p-4">
-                          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                            inspections digitales
-                          </p>
-                          <div className="mt-3 grid gap-2">
+                        <div className="hairline-card rounded-[22px] p-4">
+                          <SectionHeader eyebrow="controle qualite" title="Inspections digitales" action={`${blockedInspections} blocage`} />
+                          <div className="mt-5 grid gap-3">
                             {overview.inspections.slice(0, 3).map((inspection) => (
-                              <div key={inspection.id} className="rounded-[14px] border border-[var(--color-border)] bg-[#08080a] p-3">
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="font-semibold tracking-[-0.02em]">{inspection.vehicle}</span>
-                                  <span className="font-mono text-xs text-[var(--color-accent)]">{inspection.score}/100</span>
+                              <article key={inspection.id} className="field-surface rounded-[18px] p-4">
+                                <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                                  <div>
+                                    <div className="font-semibold tracking-[-0.02em]">{inspection.vehicle}</div>
+                                    <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
+                                      {inspection.client} - {inspection.inspector || "inspecteur non assigne"}
+                                    </p>
+                                  </div>
+                                  <div className="text-left sm:text-right">
+                                    <div className="tabular font-mono text-xl font-black text-[var(--color-accent)]">{inspection.score}</div>
+                                    <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">score</div>
+                                  </div>
                                 </div>
-                                <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-                                  {inspection.client} - {inspection.failCount} bloquant(s), {inspection.photoCount} photos
-                                </p>
-                              </div>
+                                <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-[12px] border border-[var(--color-border)] bg-[var(--color-border)]">
+                                  {[
+                                    ["bloquants", inspection.failCount],
+                                    ["a voir", inspection.attentionCount],
+                                    ["photos", inspection.photoCount],
+                                  ].map(([label, value]) => (
+                                    <div key={label} className="bg-[#0d0d10] p-2">
+                                      <div className="tabular font-mono text-sm font-black">{value}</div>
+                                      <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.1em] text-[var(--color-fg-subtle)]">
+                                        {label}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </article>
                             ))}
                           </div>
                         </div>
@@ -719,28 +788,34 @@ export function OperationsConsole() {
                           <p className="mt-2 text-sm leading-6 text-[var(--color-fg-muted)]">{diagnostic.nextAction}</p>
                         </div>
                       ))}
-                      {overview.workOrders.map((order) => (
-                        <article
-                          key={order.id}
-                          className="grid gap-3 rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4 md:grid-cols-[4rem_1fr_auto]"
-                        >
-                          <div className="font-mono text-xs text-[var(--color-accent)]">{order.time}</div>
-                          <div>
-                            <h3 className="font-semibold tracking-[-0.025em]">{order.operation}</h3>
-                            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-                              {order.client} - {order.vehicle}
-                            </p>
-                          </div>
-                          <div className="text-left md:text-right">
-                            <div className="font-mono text-xs uppercase tracking-[0.13em] text-[var(--color-fg-subtle)]">
-                              {order.status}
-                            </div>
-                            <div className="tabular mt-2 font-mono text-sm font-black">
-                              {order.amount.toLocaleString("fr-FR")} F
-                            </div>
-                          </div>
-                        </article>
-                      ))}
+                      <div className="hairline-card rounded-[22px] p-4">
+                        <SectionHeader eyebrow="timeline atelier" title="Ordres en cours" action={`${overview.workOrders.length} actifs`} />
+                        <div className="mt-5 grid gap-0 overflow-hidden rounded-[18px] border border-[var(--color-border)]">
+                          {overview.workOrders.map((order, index) => (
+                            <article
+                              key={order.id}
+                              className="relative grid gap-3 border-t border-[var(--color-border)] bg-[#0b0b0d] p-4 first:border-t-0 md:grid-cols-[4.5rem_1fr_auto]"
+                            >
+                              <div className="absolute left-0 top-0 h-full w-1 bg-[var(--color-accent)]/70" style={{ opacity: 0.95 - index * 0.12 }} />
+                              <div className="font-mono text-xs text-[var(--color-accent)]">{order.time}</div>
+                              <div>
+                                <h3 className="font-semibold tracking-[-0.025em]">{order.operation}</h3>
+                                <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+                                  {order.client} - {order.vehicle}
+                                </p>
+                              </div>
+                              <div className="text-left md:text-right">
+                                <div className="font-mono text-xs uppercase tracking-[0.13em] text-[var(--color-fg-subtle)]">
+                                  {statusLabel(order.status)}
+                                </div>
+                                <div className="tabular mt-2 font-mono text-sm font-black">
+                                  {order.amount.toLocaleString("fr-FR")} F
+                                </div>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ) : null}
 
@@ -812,7 +887,13 @@ export function OperationsConsole() {
                   ) : null}
 
                   {activeTab === "iot" ? (
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
+                      <div className="hairline-card rounded-[22px] p-4">
+                        <SectionHeader eyebrow="telemetrie embarquee" title="Capteurs voiture connectee" action={`${overview.signals.length} flux`} />
+                        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-fg-muted)]">
+                          Les boitiers IoT remontent les anomalies moteur, les rappels vidange, assurance et visite technique pour le garage et le compte client.
+                        </p>
+                      </div>
                       {liveIotEvents.length > 0 ? (
                         <div className="rounded-[18px] border border-[var(--color-accent)]/45 bg-[var(--color-accent)]/10 p-4">
                           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-accent)]">
@@ -835,18 +916,21 @@ export function OperationsConsole() {
                       {overview.signals.map((signal) => (
                         <article
                           key={signal.id}
-                          className="grid gap-3 rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4 md:grid-cols-[1fr_auto]"
+                          className="field-surface grid gap-4 rounded-[18px] p-4 md:grid-cols-[1fr_auto]"
                         >
                           <div>
                             <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
                               {signal.device} - {signal.updatedAt}
                             </div>
-                            <h3 className="mt-2 font-black tracking-[-0.025em]">{signal.metric}</h3>
+                            <h3 className="mt-2 text-lg font-black tracking-[-0.035em]">{signal.metric}</h3>
                             <p className="mt-1 text-sm text-[var(--color-fg-muted)]">{signal.vehicle}</p>
                           </div>
-                          <span className={`h-fit rounded-lg border px-3 py-2 font-mono text-xs font-black ${severityClass(signal.status)}`}>
-                            {signal.value}
-                          </span>
+                          <div className="flex items-end justify-between gap-4 md:min-w-44 md:justify-end">
+                            <SignalBars status={signal.status} />
+                            <span className={`h-fit rounded-lg border px-3 py-2 font-mono text-xs font-black ${severityClass(signal.status)}`}>
+                              {signal.value}
+                            </span>
+                          </div>
                         </article>
                       ))}
                     </div>
@@ -984,9 +1068,15 @@ export function OperationsConsole() {
                   ) : null}
 
                   {activeTab === "alertes" ? (
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
+                      <div className="hairline-card rounded-[22px] p-4">
+                        <SectionHeader eyebrow="rappels critiques" title="Vidange, assurance, visite" action={`${overview.alerts.length} alertes`} />
+                        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-fg-muted)]">
+                          Les alertes administratives et mecaniques sont visibles cote garage et cote client pour eviter les oublis de suivi.
+                        </p>
+                      </div>
                       {overview.alerts.map((alert) => (
-                        <article key={alert.id} className="rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4">
+                        <article key={alert.id} className="field-surface overflow-hidden rounded-[18px] p-4">
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
                               <span className={`inline-flex rounded-lg border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] ${severityClass(alert.severity)}`}>
@@ -1000,6 +1090,14 @@ export function OperationsConsole() {
                             <div className="font-mono text-sm font-black text-[var(--color-accent)]">{alert.due}</div>
                           </div>
                           <p className="mt-3 text-xs leading-5 text-[var(--color-fg-subtle)]">Source: {alert.source}</p>
+                          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+                            <motion.div
+                              initial={{ width: "18%" }}
+                              animate={{ width: alert.severity === "blocked" ? "92%" : alert.severity === "urgent" ? "78%" : "54%" }}
+                              transition={{ duration: 0.9, ease: easings.signature }}
+                              className="h-full rounded-full bg-[var(--color-accent)]"
+                            />
+                          </div>
                           <button
                             type="button"
                             onClick={() =>
@@ -1083,7 +1181,7 @@ export function OperationsConsole() {
           </div>
         </div>
       </div>
-      <div className="fixed inset-x-3 bottom-3 z-20 grid grid-cols-3 gap-2 rounded-[20px] border border-[var(--color-border)] bg-[#09090b]/92 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.42)] backdrop-blur md:hidden">
+      <div className="fixed bottom-3 left-[4.25rem] right-3 z-20 grid grid-cols-3 gap-2 rounded-[20px] border border-[var(--color-border)] bg-[#09090b]/92 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.42)] backdrop-blur md:hidden">
         <button
           type="button"
           onClick={createDiagnostic}

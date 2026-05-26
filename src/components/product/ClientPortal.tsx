@@ -87,6 +87,37 @@ function formatMoney(value?: number) {
   return `${(value ?? 0).toLocaleString("fr-FR")} F`;
 }
 
+function PortalSectionHeader({ eyebrow, title, count }: { eyebrow: string; title: string; count?: number | string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">{eyebrow}</p>
+        <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">{title}</h2>
+      </div>
+      {count !== undefined ? (
+        <span className="rounded-[10px] border border-[var(--color-border)] bg-white/[0.035] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
+          {count}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function MiniSignal({ status }: { status?: string }) {
+  const level = status === "blocked" ? 5 : status === "urgent" ? 4 : status === "watch" ? 3 : 2;
+  return (
+    <div className="flex h-7 items-end gap-1">
+      {[1, 2, 3, 4, 5].map((item) => (
+        <span
+          key={item}
+          className={`w-1 rounded-full ${item <= level ? "bg-[var(--color-accent)]" : "bg-white/10"}`}
+          style={{ height: `${8 + item * 3}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ClientPortal({ clientId, initialPortal }: { clientId: string; initialPortal: ClientPortalData }) {
   const [portal, setPortal] = useState<ClientPortalData>(initialPortal);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -209,19 +240,11 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
 
           <div className="grid gap-4">
             <section className="panel rounded-[26px] p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                    priorites
-                  </p>
-                  <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Alertes vehicule</h2>
-                </div>
-                <span className="tabular font-mono text-2xl font-black text-[var(--color-accent)]">{portal.alerts.length}</span>
-              </div>
+              <PortalSectionHeader eyebrow="priorites conducteur" title="Alertes vehicule" count={portal.alerts.length} />
               <div className="mt-5 grid gap-3">
                 {portal.alerts.length > 0 ? (
                   portal.alerts.map((alert) => (
-                    <article key={alert.id} className="rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4">
+                    <article key={alert.id} className="field-surface overflow-hidden rounded-[18px] p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="font-black tracking-[-0.03em]">{alert.label}</h3>
@@ -232,6 +255,14 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
                         </span>
                       </div>
                       <p className="mt-3 text-xs leading-5 text-[var(--color-fg-subtle)]">{alert.source}</p>
+                      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <motion.div
+                          initial={{ width: "18%" }}
+                          animate={{ width: alert.severity === "blocked" ? "92%" : alert.severity === "urgent" ? "78%" : "54%" }}
+                          className="h-full rounded-full bg-[var(--color-accent)]"
+                          transition={{ duration: 0.8 }}
+                        />
+                      </div>
                     </article>
                   ))
                 ) : (
@@ -244,13 +275,10 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
 
             <section className="grid gap-4 md:grid-cols-2">
               <div className="panel rounded-[26px] p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                  devis a valider
-                </p>
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Decision client</h2>
+                <PortalSectionHeader eyebrow="devis a valider" title="Decision client" count={portal.estimates.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.estimates.map((estimate) => (
-                    <article key={estimate.id} className="rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4">
+                    <article key={estimate.id} className="field-surface rounded-[18px] p-4">
                       <h3 className="font-black tracking-[-0.03em]">{estimate.operation}</h3>
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <span className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">{estimate.status}</span>
@@ -272,15 +300,12 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
               </div>
 
               <div className="panel rounded-[26px] p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                  paiement
-                </p>
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Factures</h2>
+                <PortalSectionHeader eyebrow="paiement" title="Factures" count={portal.invoices.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.invoices.map((invoice) => {
                     const remaining = Math.max((invoice.total ?? 0) - (invoice.paid ?? 0), 0);
                     return (
-                      <article key={invoice.id} className="rounded-[16px] border border-[var(--color-border)] bg-[#08080a] p-4">
+                      <article key={invoice.id} className="field-surface rounded-[18px] p-4">
                         <div className="flex items-center justify-between gap-3">
                           <h3 className="font-black tracking-[-0.03em]">Facture {invoice.id}</h3>
                           <span className="font-mono text-xs text-[var(--color-fg-subtle)]">{invoice.status}</span>
@@ -312,13 +337,10 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
 
             <section className="grid gap-4 md:grid-cols-2">
               <div className="panel rounded-[26px] p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                  boitier IoT
-                </p>
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Signaux live</h2>
+                <PortalSectionHeader eyebrow="boitier IoT" title="Signaux live" count={`${portal.signals.length} flux`} />
                 <div className="mt-5 grid gap-3">
                   {portal.signals.map((signal) => (
-                    <article key={signal.id} className="rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4">
+                    <article key={signal.id} className="field-surface rounded-[18px] p-4">
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
                           {signal.metric}
@@ -327,7 +349,10 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
                           {signal.status || "ok"}
                         </span>
                       </div>
-                      <div className="tabular mt-2 font-mono text-xl font-black">{signal.value}</div>
+                      <div className="mt-3 flex items-end justify-between gap-4">
+                        <div className="tabular font-mono text-xl font-black">{signal.value}</div>
+                        <MiniSignal status={signal.status} />
+                      </div>
                       <p className="mt-2 text-xs text-[var(--color-fg-muted)]">{signal.updatedAt}</p>
                     </article>
                   ))}
@@ -335,13 +360,10 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
               </div>
 
               <div className="panel rounded-[26px] p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                  coffre vehicule
-                </p>
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Documents</h2>
+                <PortalSectionHeader eyebrow="coffre vehicule" title="Documents" count={portal.documents.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.documents.map((document) => (
-                    <article key={document.id} className="rounded-[16px] border border-[var(--color-border)] bg-white/[0.025] p-4">
+                    <article key={document.id} className="field-surface rounded-[18px] p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="font-black tracking-[-0.03em]">{document.label}</h3>
