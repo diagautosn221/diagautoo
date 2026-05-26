@@ -489,34 +489,46 @@ export function OperationsConsole() {
   const busyTeam = overview.team.filter((member) => member.status !== "disponible").length;
 
   return (
-    <section id="console" className="relative min-h-[100dvh] overflow-hidden pt-28 pb-32 md:pt-32 md:pb-18">
-      <div className="pointer-events-none absolute inset-y-0 left-[7vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-70 lg:block" />
-      <div className="pointer-events-none absolute inset-y-0 right-[18vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-40 lg:block" />
+    <section id="console" className="relative min-h-[100dvh] overflow-hidden pt-12 pb-32 md:pt-16 md:pb-18">
+      <div className="pointer-events-none absolute inset-y-0 left-[7vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-45 lg:block" />
+      <div className="pointer-events-none absolute inset-y-0 right-[18vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-28 lg:block" />
       <div className="container-tight">
-        <div className="premium-shell clip-dashboard mb-7 overflow-hidden rounded-[34px]">
-          <div className="grid gap-px bg-[var(--color-border)]/70 lg:grid-cols-[0.88fr_1.12fr]">
-            <div className="relative overflow-hidden bg-[#0d0a0b] p-5 md:p-8 lg:p-10">
-              <div className="pointer-events-none absolute -left-12 top-10 h-48 w-48 rounded-full border border-[var(--color-accent)]/20" />
-              <div className="pointer-events-none absolute bottom-5 right-6 font-display text-[5.8rem] font-black leading-none tracking-[-0.08em] text-white/[0.025] md:text-[8rem]">
-                DASN
-              </div>
-              <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
-                cockpit garage connecte
-              </p>
-              <h2 className="mt-5 max-w-[11ch] text-balance font-display text-5xl font-black leading-[0.82] tracking-[-0.075em] md:text-7xl">
-                Atelier en mode commande.
-              </h2>
-              <p className="mt-6 max-w-lg text-pretty text-sm leading-7 text-[var(--color-fg-muted)] md:text-base">
-                Les priorites atelier, les capteurs IoT, les rappels client et l'argent a encaisser
-                sont visibles sans quitter le premier ecran.
-              </p>
+        <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">DiagAutoSN garage OS</p>
+            <h2 className="mt-2 font-display text-3xl font-black leading-none tracking-[-0.055em] md:text-5xl">
+              Poste de controle atelier
+            </h2>
+          </div>
+          <div className="command-input flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">sync garage</span>
+            <span className="font-mono text-sm font-black text-[var(--color-fg)]">
+              {new Date(overview.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          </div>
+        </div>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mb-5 grid gap-4 xl:grid-cols-[1.05fr_0.95fr_0.7fr]">
+          <article className="ops-surface relative overflow-hidden rounded-[28px] p-5">
+            <div className="absolute left-0 top-6 h-28 w-1 status-rail" />
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+              <div className="max-w-2xl pl-2">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">decision maintenant</p>
+                <h3 className="mt-3 text-3xl font-black leading-[0.95] tracking-[-0.055em] md:text-4xl">
+                  {criticalAlert ? criticalAlert.label : "Atelier sous controle"}
+                </h3>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--color-fg-muted)]">
+                  {criticalAlert
+                    ? `${criticalAlert.client} - ${criticalAlert.vehicle}. ${criticalAlert.due}.`
+                    : "Les receptions, les capteurs et les relances client sont synchronises."}
+                </p>
+              </div>
+              <div className="grid gap-2 md:min-w-48">
                 <button
                   type="button"
                   onClick={createDiagnostic}
                   disabled={isCreating}
-                  className="min-h-13 rounded-[16px] bg-[var(--color-accent)] px-5 text-sm font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.24)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 rounded-[14px] bg-[var(--color-accent)] px-5 text-sm font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isCreating ? "Creation..." : "Ouvrir diagnostic"}
                 </button>
@@ -524,58 +536,65 @@ export function OperationsConsole() {
                   type="button"
                   onClick={ingestIotSignal}
                   disabled={isSendingIot}
-                  className="min-h-13 rounded-[16px] border border-[var(--color-border)] bg-white/[0.045] px-5 text-sm font-black text-[var(--color-fg)] transition duration-200 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                  className="min-h-12 rounded-[14px] border border-[var(--color-border)] bg-white/[0.035] px-5 text-sm font-black text-[var(--color-fg)] transition duration-200 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSendingIot ? "Signal..." : "Injecter signal IoT"}
                 </button>
               </div>
-
-              <div className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-[22px] border border-[var(--color-border)] bg-[var(--color-border)]">
-                {[
-                  ["Clients", overview.summary.clients],
-                  ["Vehicules", overview.summary.vehicles],
-                  ["Capteurs", overview.summary.connectedDevices],
-                ].map(([label, value]) => (
-                  <div key={label} className="bg-[#120f10] p-4">
-                    <div className="tabular font-mono text-2xl font-black text-[var(--color-fg)]">{value}</div>
-                    <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            <div className="bg-[#090808] p-3 md:p-5">
-              <VehicleCommandStage priorityAlerts={priorityAlerts} connectedDevices={overview.summary.connectedDevices} />
+            <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-4">
+              {[
+                ["clients", overview.summary.clients],
+                ["vehicules", overview.summary.vehicles],
+                ["capteurs", overview.summary.connectedDevices],
+                ["cash", `${cashToCollect.toLocaleString("fr-FR")} F`],
+              ].map(([label, value]) => (
+                <div key={label} className="bg-[#0d0b0c] p-4">
+                  <div className="tabular font-mono text-xl font-black text-[var(--color-fg)]">{value}</div>
+                  <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">{label}</div>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-
-        <div className="mb-5 grid gap-px overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-[1.25fr_0.9fr_0.9fr_0.9fr]">
-          <article className="bg-[#0f0b0c] p-4 md:p-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">decision maintenant</p>
-            <h3 className="mt-3 text-xl font-black tracking-[-0.04em] md:text-2xl">
-              {criticalAlert ? criticalAlert.label : "Aucune alerte bloquante"}
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-fg-muted)]">
-              {criticalAlert
-                ? `${criticalAlert.client} - ${criticalAlert.vehicle}. ${criticalAlert.due}.`
-                : "L'atelier peut se concentrer sur les devis et les livraisons."}
-            </p>
           </article>
-          {[ 
-            ["A encaisser", `${cashToCollect.toLocaleString("fr-FR")} F`],
-            ["Inspections bloquees", blockedInspections],
-            ["Equipe mobilisee", `${busyTeam}/${overview.team.length}`],
-          ].map(([label, value]) => (
-            <article key={label} className="bg-[#141011] p-4 md:p-6">
-              <div className="tabular font-mono text-2xl font-semibold text-[var(--color-accent)]">{value}</div>
-              <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                {label}
-              </div>
-            </article>
-          ))}
+
+          <article className="ops-surface rounded-[28px] p-5">
+            <SectionHeader eyebrow="baies atelier" title="Equipe et charge" action={`${busyTeam}/${overview.team.length}`} />
+            <div className="mt-5 grid gap-2">
+              {overview.team.slice(0, 3).map((member) => (
+                <div key={member.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-[var(--color-border)] pt-3 first:border-t-0 first:pt-0">
+                  <span className={`size-2 rounded-full ${member.status === "disponible" ? "bg-[var(--color-success)]" : "bg-[var(--color-accent)]"}`} />
+                  <div>
+                    <div className="text-sm font-black tracking-[-0.02em]">{member.fullName}</div>
+                    <div className="mt-1 truncate text-xs text-[var(--color-fg-muted)]">{member.currentOperation || member.role}</div>
+                  </div>
+                  <span className="rounded-[10px] border border-[var(--color-border)] px-2 py-1 font-mono text-[10px] text-[var(--color-accent)]">{member.bay}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="ops-surface rounded-[28px] p-5">
+            <SectionHeader eyebrow="file risque" title="Alertes a traiter" action={`${overview.summary.urgentAlerts}`} />
+            <div className="mt-5 grid gap-2">
+              {overview.alerts.slice(0, 4).map((alert) => (
+                <button
+                  key={alert.id}
+                  type="button"
+                  onClick={() => setActiveTab("alertes")}
+                  className="group grid gap-1 rounded-[14px] border border-[var(--color-border)] bg-white/[0.018] p-3 text-left transition hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/8 active:translate-y-px"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-black tracking-[-0.02em]">{alert.label}</span>
+                    <span className={`rounded-[8px] border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] ${severityClass(alert.severity)}`}>
+                      {alert.type}
+                    </span>
+                  </div>
+                  <span className="truncate text-xs text-[var(--color-fg-muted)]">{alert.client} - {alert.vehicle}</span>
+                </button>
+              ))}
+            </div>
+          </article>
         </div>
 
         {actionMessage ? (

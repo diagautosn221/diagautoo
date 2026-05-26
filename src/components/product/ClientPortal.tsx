@@ -150,22 +150,34 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
   return (
     <main className="min-h-[100dvh] overflow-hidden py-8">
       <div className="container-tight">
-        <section className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="premium-shell relative overflow-hidden rounded-[34px] p-6 md:p-8">
-            <div className="pointer-events-none absolute -right-24 top-10 size-72 rounded-full border border-[var(--color-accent)]/20" />
-            <div className="pointer-events-none absolute -right-12 top-28 size-44 rounded-full border border-[var(--color-accent)]/35" />
-            <div className="pointer-events-none absolute bottom-5 right-6 font-display text-[5rem] font-black leading-none tracking-[-0.08em] text-white/[0.03] md:text-[7rem]">
-              CLIENT
+        <section className="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
+          <div className="ops-surface relative overflow-hidden rounded-[30px] p-5 md:p-6">
+            <div className="absolute left-0 top-8 h-28 w-1 status-rail" />
+            <p className="pl-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
+              carnet connecte
+            </p>
+            <div className="mt-4 grid gap-4 pl-2">
+              <div>
+                <h1 className="max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.9] tracking-[-0.065em] md:text-5xl">
+                  {vehicleLabel}
+                </h1>
+                <p className="mt-3 text-sm leading-6 text-[var(--color-fg-muted)]">
+                  {clientName} suit l'etat du vehicule, les documents, les devis et les paiements.
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)]">
+                {[
+                  ["score", vehicle?.healthScore ?? 0],
+                  ["plaque", vehicle?.plate || "DK 4582 AA"],
+                  ["km", (vehicle?.mileage ?? 0).toLocaleString("fr-FR")],
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-[#0d0d10] p-3">
+                    <div className="tabular font-mono text-sm font-black text-[var(--color-fg)]">{value}</div>
+                    <div className="mt-2 font-mono text-[8px] uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">{label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              compte client connecte
-            </p>
-            <h1 className="mt-4 max-w-[11ch] text-balance font-display text-5xl font-black leading-[0.82] tracking-[-0.075em] md:text-7xl">
-              {clientName}, votre voiture parle.
-            </h1>
-            <p className="mt-6 max-w-xl text-pretty text-sm leading-7 text-[var(--color-fg-muted)] md:text-base">
-              {vehicleLabel} remonte ses alertes, documents, devis et paiements depuis le compte client.
-            </p>
 
             <AnimatePresence>
               {message ? (
@@ -184,28 +196,6 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
                 {error}
               </div>
             ) : null}
-
-            <div className="relative mt-8 overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[#080708] p-5 vehicle-scan-grid">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(223,68,56,0.16),transparent_35%)]" />
-              <div className="relative mx-auto h-32 max-w-[360px]">
-                <div className="absolute inset-x-[8%] top-[28%] h-[44%] rounded-[50%_50%_18%_18%] border border-[var(--color-accent)]/50 bg-[linear-gradient(180deg,rgba(223,68,56,0.2),rgba(223,68,56,0.05))]" />
-                <div className="absolute bottom-[19%] left-[19%] size-9 rounded-full border-[8px] border-[#050505] bg-[var(--color-border-strong)]" />
-                <div className="absolute bottom-[19%] right-[19%] size-9 rounded-full border-[8px] border-[#050505] bg-[var(--color-border-strong)]" />
-                <span className="scan-line absolute left-1/2 top-0 h-10 w-[78%] -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,rgba(223,68,56,0.0),rgba(223,68,56,0.22),rgba(223,68,56,0.0))]" />
-              </div>
-            </div>
-
-            <div className="relative mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-border)]">
-              {[
-                `Score ${vehicle?.healthScore ?? 0}`,
-                vehicle?.plate || "DK 4582 AA",
-                `${(vehicle?.mileage ?? 0).toLocaleString("fr-FR")} km`,
-              ].map((item) => (
-                <div key={item} className="bg-[#0d0d10] p-4">
-                  <div className="font-mono text-sm font-black text-[var(--color-fg)]">{item}</div>
-                </div>
-              ))}
-            </div>
 
             <div className="relative mt-6 grid gap-3 text-sm text-[var(--color-fg-muted)]">
               <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
@@ -232,7 +222,7 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
                 })
               }
               disabled={busyAction === "callback" || !vehicle?.id}
-              className="mt-8 min-h-12 w-full rounded-[16px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.24)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-6 min-h-12 w-full rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busyAction === "callback" ? "Envoi..." : "Demander un rappel atelier"}
             </button>
