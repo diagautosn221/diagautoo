@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type PortalVehicle = {
@@ -147,6 +147,23 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
     }
   }
 
+  async function submitVehicleProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!vehicle?.id) return;
+    const form = new FormData(event.currentTarget);
+    await runClientAction("vehicle_profile", {
+      action: "update_vehicle_profile",
+      vehicleId: vehicle.id,
+      brand: String(form.get("brand") || ""),
+      model: String(form.get("model") || ""),
+      plate: String(form.get("plate") || ""),
+      mileage: Number(form.get("mileage") || 0),
+      insuranceDue: String(form.get("insuranceDue") || ""),
+      inspectionDue: String(form.get("inspectionDue") || ""),
+      oilDueKm: Number(form.get("oilDueKm") || 0),
+    });
+  }
+
   return (
     <main className="min-h-[100dvh] overflow-hidden py-8">
       <div className="container-tight">
@@ -229,6 +246,42 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
           </div>
 
           <div className="grid gap-4">
+            <section className="panel rounded-[26px] p-5">
+              <PortalSectionHeader eyebrow="personnalisation" title="Details de votre voiture" count="modifiable" />
+              <form onSubmit={submitVehicleProfile} className="mt-5 grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    ["Marque", "brand", vehicle?.brand || ""],
+                    ["Modele", "model", vehicle?.model || ""],
+                    ["Plaque", "plate", vehicle?.plate || ""],
+                    ["Kilometrage", "mileage", String(vehicle?.mileage ?? 0)],
+                    ["Assurance", "insuranceDue", vehicle?.insuranceDue || ""],
+                    ["Visite technique", "inspectionDue", vehicle?.inspectionDue || ""],
+                    ["Prochaine vidange", "oilDueKm", String(vehicle?.oilDueKm ?? 0)],
+                  ].map(([label, name, value]) => (
+                    <label key={name} className="grid gap-2">
+                      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                        {label}
+                      </span>
+                      <input
+                        name={name}
+                        type={name === "mileage" || name === "oilDueKm" ? "number" : "text"}
+                        defaultValue={value}
+                        className="command-input min-h-11 rounded-[12px] px-3 text-sm text-[var(--color-fg)] outline-none"
+                      />
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="submit"
+                  disabled={busyAction === "vehicle_profile" || !vehicle?.id}
+                  className="min-h-12 rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {busyAction === "vehicle_profile" ? "Mise a jour..." : "Enregistrer mes details"}
+                </button>
+              </form>
+            </section>
+
             <section className="panel rounded-[26px] p-5">
               <PortalSectionHeader eyebrow="priorites conducteur" title="Alertes vehicule" count={portal.alerts.length} />
               <div className="mt-5 grid gap-3">

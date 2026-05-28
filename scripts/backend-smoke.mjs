@@ -76,6 +76,17 @@ report.portal = {
   vehicles: portal.portal.vehicles.length,
 };
 
+const cms = await get("/api/admin/cms", "admin cms");
+assert(cms.source === "sqlite", "admin cms must use sqlite");
+assert(cms.cms?.services?.length >= 1, "admin cms has no services");
+assert(cms.cms?.users?.length >= 1, "admin cms has no users");
+
+report.cms = {
+  services: cms.cms.services.length,
+  users: cms.cms.users.length,
+  auditEvents: cms.cms.auditEvents.length,
+};
+
 if (mutationEnabled) {
   const telemetry = await post(
     "/api/iot/telemetry",
@@ -134,6 +145,24 @@ if (mutationEnabled) {
   };
 
   const vehicleId = portal.portal.vehicles[0].id;
+  const vehicleProfile = await post(
+    "/api/client/portal?clientId=c-001",
+    {
+      action: "update_vehicle_profile",
+      vehicleId,
+      brand: "Toyota",
+      model: "Prado",
+      plate: "DK 4582 AA",
+      mileage: 124900,
+      insuranceDue: "2026-06-15",
+      inspectionDue: "2026-07-12",
+      oilDueKm: 126500,
+    },
+    "client vehicle profile"
+  );
+  assert(vehicleProfile.portal?.vehicles?.[0]?.mileage === 124900, "vehicle profile did not update mileage");
+  report.portal.vehicleProfile = vehicleProfile.recordId;
+
   const callback = await post(
     "/api/client/portal?clientId=c-001",
     {

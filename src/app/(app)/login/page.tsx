@@ -9,7 +9,7 @@ export default function LoginPage() {
           Choisir un espace.
         </h1>
         <p className="mt-4 text-sm leading-7 text-[var(--color-fg-muted)]">
-          Cette entree simule le routage des comptes garage et client avant branchement auth complet.
+          Accedez au cockpit garage, au carnet client ou au panneau admin selon votre role DiagAutoSN.
         </p>
         <div className="mt-7 grid gap-3">
           <Link
@@ -23,6 +23,12 @@ export default function LoginPage() {
             className="rounded-[16px] border border-[var(--color-border)] px-5 py-4 text-center font-semibold text-[var(--color-fg)] transition hover:border-[var(--color-accent)] active:translate-y-px"
           >
             Entrer comme client
+          </Link>
+          <Link
+            href="/admin"
+            className="rounded-[16px] border border-[var(--color-border)] px-5 py-4 text-center font-semibold text-[var(--color-fg)] transition hover:border-[var(--color-accent)] active:translate-y-px"
+          >
+            Entrer comme admin
           </Link>
         </div>
       </section>

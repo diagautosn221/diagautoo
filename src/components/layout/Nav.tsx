@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-  { href: "#console", label: "Command center" },
+  { href: "#services", label: "Services" },
   { href: "/atelier", label: "Atelier" },
   { href: "/carnet", label: "Client" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export function Nav() {
@@ -62,11 +63,11 @@ export function Nav() {
           </ul>
 
           <Link
-            href="#console"
+            href="/login"
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[10px] bg-[var(--color-accent)] px-3 text-sm font-semibold text-[var(--color-accent-ink)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px sm:px-4"
           >
-            <span className="sm:hidden">Live</span>
-            <span className="hidden sm:inline">Mode atelier</span>
+            <span className="sm:hidden">Espace</span>
+            <span className="hidden sm:inline">Se connecter</span>
           </Link>
         </nav>
       </div>

@@ -73,7 +73,35 @@ export type GarageActionPayload =
 export type ClientPortalActionPayload =
   | { action: "approve_estimate"; estimateId?: string }
   | { action: "record_payment"; invoiceId?: string; amount?: number; method?: string }
-  | { action: "request_callback"; vehicleId?: string; reason?: string };
+  | { action: "request_callback"; vehicleId?: string; reason?: string }
+  | {
+      action: "update_vehicle_profile";
+      vehicleId?: string;
+      brand?: string;
+      model?: string;
+      plate?: string;
+      mileage?: number;
+      insuranceDue?: string;
+      inspectionDue?: string;
+      oilDueKm?: number;
+    };
+
+export type AdminCmsActionPayload =
+  | {
+      action: "update_service";
+      serviceId?: string;
+      title?: string;
+      description?: string;
+      priceLabel?: string;
+      status?: string;
+    }
+  | {
+      action: "update_page";
+      slug?: string;
+      title?: string;
+      description?: string;
+      status?: string;
+    };
 
 const require = createRequire(import.meta.url);
 const { DatabaseSync } = require("node:sqlite") as { DatabaseSync: DatabaseConstructor };
@@ -302,6 +330,51 @@ function migrate(db: Database) {
       file_ref TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS roles (
+      id TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      scope TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      client_id TEXT REFERENCES clients(id),
+      garage_id TEXT REFERENCES garages(id),
+      email TEXT NOT NULL UNIQUE,
+      full_name TEXT NOT NULL,
+      role_id TEXT NOT NULL REFERENCES roles(id),
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS cms_pages (
+      slug TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      status TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS service_catalog_items (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price_label TEXT NOT NULL,
+      status TEXT NOT NULL,
+      sort_order INTEGER NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_events (
+      id TEXT PRIMARY KEY,
+      actor TEXT NOT NULL,
+      action TEXT NOT NULL,
+      entity TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }
 
@@ -448,6 +521,43 @@ function seed(db: Database) {
     ["doc-004", "v-003", "rapport_diagnostic", "Rapport diagnostic P0420", "partage_client", null, "local://documents/rapport-p0420.pdf"],
     ["doc-005", "v-004", "assurance", "Assurance Hyundai Tucson", "urgent", "2026-05-30", "local://documents/assurance-tucson.pdf"],
   ].forEach((document) => insertDocument.run(...document));
+
+  const insertRole = db.prepare("INSERT OR IGNORE INTO roles (id, label, scope) VALUES (?, ?, ?)");
+  [
+    ["role-admin", "Administrateur plateforme", "admin"],
+    ["role-garage", "Equipe garage", "garage"],
+    ["role-client", "Client vehicule", "client"],
+  ].forEach((role) => insertRole.run(...role));
+
+  const insertUser = db.prepare(
+    "INSERT OR IGNORE INTO users (id, client_id, garage_id, email, full_name, role_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  );
+  [
+    ["u-admin", null, "g-001", "admin@diagautosn.local", "Admin DiagAutoSN", "role-admin", "active"],
+    ["u-garage", null, "g-001", "atelier@diagautosn.local", "Equipe atelier", "role-garage", "active"],
+    ["u-client-001", "c-001", "g-001", "awa.diop@diagautosn.local", "Awa Diop", "role-client", "active"],
+  ].forEach((user) => insertUser.run(...user));
+
+  const now = new Date().toISOString();
+  const insertPage = db.prepare(
+    "INSERT OR IGNORE INTO cms_pages (slug, title, description, status, updated_at) VALUES (?, ?, ?, ?, ?)"
+  );
+  [
+    ["accueil", "Garage connecte pour Dakar", "Diagnostic, entretien, documents et suivi IoT depuis un seul espace.", "publie", now],
+    ["services", "Services atelier", "Vidange, diagnostic OBD-II, assurance, visite technique, reception et suivi client.", "publie", now],
+    ["iot", "Capteur IoT vehicule", "Boitier connecte pour remonter les alertes moteur, documents et maintenance.", "brouillon", now],
+  ].forEach((page) => insertPage.run(...page));
+
+  const insertService = db.prepare(
+    "INSERT OR IGNORE INTO service_catalog_items (id, title, description, price_label, status, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  );
+  [
+    ["svc-diagnostic", "Diagnostic intelligent", "Lecture OBD-II, interpretation claire et recommandation atelier.", "Sur devis", "publie", 1, now],
+    ["svc-vidange", "Vidange suivie", "Rappel kilometrage, huile, filtres et historique dans le carnet client.", "A partir de 25 000 F", "publie", 2, now],
+    ["svc-visite", "Visite technique", "Preparation, controle securite et rappel avant echeance.", "Forfait atelier", "publie", 3, now],
+    ["svc-assurance", "Assurance", "Suivi echeance, relance client et coffre documentaire.", "Selon contrat", "publie", 4, now],
+    ["svc-iot", "Boitier IoT", "Installation et supervision de signaux vehicule en temps reel.", "Abonnement", "brouillon", 5, now],
+  ].forEach((service) => insertService.run(...service));
 }
 
 function getVehicleIdByLabel(db: Database, vehicleLabel?: string) {
@@ -469,6 +579,12 @@ function slugId(prefix: string) {
 function safeText(value: string | undefined, fallback: string) {
   const cleaned = value?.trim();
   return cleaned && cleaned.length > 0 ? cleaned : fallback;
+}
+
+function auditEvent(db: Database, actor: string, action: string, entity: string, entityId: string, summary: string) {
+  db.prepare(
+    "INSERT INTO audit_events (id, actor, action, entity, entity_id, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(slugId("audit"), actor, action, entity, entityId, summary, new Date().toISOString());
 }
 
 function getEstimateContext(db: Database, estimateId: string) {
@@ -1141,7 +1257,130 @@ export function runClientPortalActionInDb(clientId = "c-001", payload: ClientPor
     };
   }
 
+  if (payload.action === "update_vehicle_profile") {
+    const vehicleId = safeText(payload.vehicleId, "");
+    const vehicle = db
+      .prepare<{ id: string }>("SELECT id FROM vehicles WHERE id = ? AND client_id = ? LIMIT 1")
+      .get(vehicleId, clientId);
+    if (!vehicle) throw new Error("vehicle forbidden");
+
+    const mileage = typeof payload.mileage === "number" && payload.mileage >= 0 ? Math.round(payload.mileage) : 0;
+    const oilDueKm = typeof payload.oilDueKm === "number" && payload.oilDueKm >= 0 ? Math.round(payload.oilDueKm) : mileage + 5000;
+
+    db.prepare(
+      `UPDATE vehicles
+       SET brand = ?, model = ?, plate = ?, mileage = ?, insurance_due = ?, inspection_due = ?, oil_due_km = ?
+       WHERE id = ? AND client_id = ?`
+    ).run(
+      safeText(payload.brand, "Vehicule"),
+      safeText(payload.model, "Client"),
+      safeText(payload.plate, "A confirmer"),
+      mileage,
+      safeText(payload.insuranceDue, "a confirmer"),
+      safeText(payload.inspectionDue, "a confirmer"),
+      oilDueKm,
+      vehicleId,
+      clientId
+    );
+
+    auditEvent(db, clientId, "update_vehicle_profile", "vehicle", vehicleId, "Client a mis a jour son profil vehicule");
+
+    return {
+      message: "Profil vehicule mis a jour",
+      recordId: vehicleId,
+      portal: getClientPortalFromDb(clientId),
+    };
+  }
+
   throw new Error("unsupported client action");
+}
+
+export function getPublicSiteFromDb() {
+  const db = getDatabase();
+  const pages = db.prepare("SELECT slug, title, description, status, updated_at AS updatedAt FROM cms_pages ORDER BY slug ASC").all();
+  const services = db
+    .prepare(
+      "SELECT id, title, description, price_label AS priceLabel, status, sort_order AS sortOrder, updated_at AS updatedAt FROM service_catalog_items WHERE status = 'publie' ORDER BY sort_order ASC"
+    )
+    .all();
+  const health = getBackendHealthFromDb();
+
+  return {
+    pages,
+    services,
+    proof: {
+      clients: health.counts.clients,
+      vehicles: health.counts.vehicles,
+      connectedDevices: health.counts.connectedDevices,
+    },
+  };
+}
+
+export function getAdminCmsFromDb() {
+  const db = getDatabase();
+  const pages = db.prepare("SELECT slug, title, description, status, updated_at AS updatedAt FROM cms_pages ORDER BY slug ASC").all();
+  const services = db
+    .prepare(
+      "SELECT id, title, description, price_label AS priceLabel, status, sort_order AS sortOrder, updated_at AS updatedAt FROM service_catalog_items ORDER BY sort_order ASC"
+    )
+    .all();
+  const users = db
+    .prepare(
+      `SELECT u.id, u.full_name AS fullName, u.email, r.label AS role, r.scope, u.status
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+       ORDER BY r.scope ASC, u.full_name ASC`
+    )
+    .all();
+  const auditEvents = db
+    .prepare("SELECT id, actor, action, entity, entity_id AS entityId, summary, created_at AS createdAt FROM audit_events ORDER BY created_at DESC LIMIT 12")
+    .all();
+
+  return { pages, services, users, auditEvents, health: getBackendHealthFromDb() };
+}
+
+export function runAdminCmsActionInDb(payload: AdminCmsActionPayload) {
+  const db = getDatabase();
+  const nowIso = new Date().toISOString();
+
+  if (payload.action === "update_service") {
+    const serviceId = safeText(payload.serviceId, "");
+    const current = db.prepare<{ id: string }>("SELECT id FROM service_catalog_items WHERE id = ? LIMIT 1").get(serviceId);
+    if (!current) throw new Error("service not found");
+
+    db.prepare(
+      `UPDATE service_catalog_items
+       SET title = ?, description = ?, price_label = ?, status = ?, updated_at = ?
+       WHERE id = ?`
+    ).run(
+      safeText(payload.title, "Service DiagAutoSN"),
+      safeText(payload.description, "Description a confirmer"),
+      safeText(payload.priceLabel, "Sur devis"),
+      safeText(payload.status, "brouillon"),
+      nowIso,
+      serviceId
+    );
+    auditEvent(db, "admin", "update_service", "service_catalog_item", serviceId, "Service public mis a jour depuis le CMS");
+    return { message: "Service mis a jour", cms: getAdminCmsFromDb() };
+  }
+
+  if (payload.action === "update_page") {
+    const slug = safeText(payload.slug, "");
+    const current = db.prepare<{ slug: string }>("SELECT slug FROM cms_pages WHERE slug = ? LIMIT 1").get(slug);
+    if (!current) throw new Error("page not found");
+
+    db.prepare("UPDATE cms_pages SET title = ?, description = ?, status = ?, updated_at = ? WHERE slug = ?").run(
+      safeText(payload.title, "Page DiagAutoSN"),
+      safeText(payload.description, "Description a confirmer"),
+      safeText(payload.status, "brouillon"),
+      nowIso,
+      slug
+    );
+    auditEvent(db, "admin", "update_page", "cms_page", slug, "Page publique mise a jour depuis le CMS");
+    return { message: "Page mise a jour", cms: getAdminCmsFromDb() };
+  }
+
+  throw new Error("unsupported cms action");
 }
 
 export function getClientPortalFromDb(clientId = "c-001") {
