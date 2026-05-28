@@ -8,6 +8,7 @@ import { easings } from "@/lib/motion/easings";
 type TabKey = "atelier" | "client" | "iot" | "alertes" | "finance";
 
 type Overview = {
+  source?: "sqlite" | "fallback";
   updatedAt: string;
   summary: {
     clients: number;
@@ -157,6 +158,23 @@ type GarageActionResponse = {
   overview: Overview;
 };
 
+type BackendHealth = {
+  ok: boolean;
+  source: "sqlite";
+  checkedAt: string;
+  storage: string;
+  integrity: "operational" | "degraded";
+  counts: {
+    clients: number;
+    vehicles: number;
+    connectedDevices: number;
+    unresolvedAlerts: number;
+    openWorkOrders: number;
+    pendingNotifications: number;
+  };
+  warnings: string[];
+};
+
 const tabs: Array<{ key: TabKey; label: string; caption: string }> = [
   { key: "atelier", label: "Atelier", caption: "operations" },
   { key: "client", label: "Client", caption: "compte" },
@@ -249,6 +267,12 @@ function SignalBars({ status }: { status: string }) {
   );
 }
 
+async function fetchBackendHealth() {
+  const response = await fetch("/api/health", { cache: "no-store" });
+  if (!response.ok) throw new Error("health unavailable");
+  return (await response.json()) as BackendHealth;
+}
+
 function SkeletonConsole() {
   return (
     <section className="panel rounded-[28px] p-5 md:p-7">
@@ -317,6 +341,7 @@ function VehicleCommandStage({
 
 export function OperationsConsole() {
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("atelier");
   const [error, setError] = useState<string | null>(null);
   const [createdDiagnostics, setCreatedDiagnostics] = useState<CreatedDiagnostic[]>([]);
@@ -346,17 +371,19 @@ export function OperationsConsole() {
 
     async function loadOverview() {
       try {
-        const data = await fetchOverview();
+        const [data, health] = await Promise.all([fetchOverview(), fetchBackendHealth().catch(() => null)]);
         if (!cancelled) {
           setOverview(data);
+          setBackendHealth(health);
           setError(null);
         }
       } catch {
         await new Promise((resolve) => window.setTimeout(resolve, 700));
         try {
-          const data = await fetchOverview();
+          const [data, health] = await Promise.all([fetchOverview(), fetchBackendHealth().catch(() => null)]);
           if (!cancelled) {
             setOverview(data);
+            setBackendHealth(health);
             setError(null);
           }
         } catch {
@@ -393,6 +420,7 @@ export function OperationsConsole() {
       const diagnostic = (await response.json()) as CreatedDiagnostic;
       const overviewResponse = await fetch("/api/garage/overview", { cache: "no-store" });
       if (overviewResponse.ok) setOverview((await overviewResponse.json()) as Overview);
+      fetchBackendHealth().then(setBackendHealth).catch(() => null);
       setCreatedDiagnostics((items) => [diagnostic, ...items].slice(0, 3));
       setActionMessage(`Diagnostic ${diagnostic.code} créé et stocké`);
       setActiveTab("atelier");
@@ -415,6 +443,7 @@ export function OperationsConsole() {
       if (!response.ok) throw new Error("iot unavailable");
       const result = (await response.json()) as { event: LiveIotEvent; overview: Overview };
       setOverview(result.overview);
+      fetchBackendHealth().then(setBackendHealth).catch(() => null);
       setLiveIotEvents((events) => [result.event, ...events].slice(0, 4));
       setActiveTab("iot");
       setError(null);
@@ -438,6 +467,7 @@ export function OperationsConsole() {
         throw new Error("error" in result ? result.error : "action failed");
       }
       setOverview(result.overview);
+      fetchBackendHealth().then(setBackendHealth).catch(() => null);
       setActionMessage(result.message);
       setError(null);
       return result;
@@ -487,6 +517,10 @@ export function OperationsConsole() {
   const cashToCollect = overview.invoices.reduce((total, invoice) => total + Math.max(invoice.total - invoice.paid, 0), 0);
   const blockedInspections = overview.inspections.filter((inspection) => inspection.status === "bloquante").length;
   const busyTeam = overview.team.filter((member) => member.status !== "disponible").length;
+  const backendIsLive = backendHealth?.ok && backendHealth.integrity === "operational" && overview.source === "sqlite";
+  const lastHealthCheck = backendHealth
+    ? new Date(backendHealth.checkedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : "non verifie";
 
   return (
     <section id="console" className="relative min-h-[100dvh] overflow-hidden pt-12 pb-32 md:pt-16 md:pb-18">
@@ -501,11 +535,31 @@ export function OperationsConsole() {
             </h2>
           </div>
           <div className="command-input flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">sync garage</span>
-            <span className="font-mono text-sm font-black text-[var(--color-fg)]">
-              {new Date(overview.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+              <span className={`size-2 rounded-full ${backendIsLive ? "bg-[var(--color-success)]" : "bg-[var(--color-danger)]"} live-dot`} />
+              {backendIsLive ? "backend live" : "backend degrade"}
             </span>
+            <span className="font-mono text-sm font-black text-[var(--color-fg)]">{lastHealthCheck}</span>
           </div>
+        </div>
+
+        <div className="mb-5 grid gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-4">
+          {[
+            ["API garage", backendIsLive ? "operationnelle" : "a verifier", "/api/health"],
+            ["Stockage", backendHealth?.storage || "node:sqlite", overview.source === "sqlite" ? "sqlite" : "fallback"],
+            ["Contrats", backendHealth ? `${backendHealth.counts.clients}/${backendHealth.counts.vehicles}` : "hors ligne", "clients/vehicules"],
+            ["Alertes", backendHealth ? backendHealth.counts.unresolvedAlerts : overview.alerts.length, "non resolues"],
+          ].map(([label, value, caption]) => (
+            <div key={label} className="bg-[#0b090a] px-4 py-4">
+              <div className="tabular font-mono text-lg font-black text-[var(--color-fg)]">{value}</div>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">{label}</span>
+                <span className="truncate text-right font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
+                  {caption}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mb-5 grid gap-4 xl:grid-cols-[1.05fr_0.95fr_0.7fr]">

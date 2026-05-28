@@ -5,6 +5,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const payload = (await request.json().catch(() => ({}))) as TelemetryPayload;
-  return NextResponse.json(ingestTelemetryInDb(payload), { status: 201 });
+  try {
+    const payload = (await request.json().catch(() => ({}))) as TelemetryPayload;
+    return NextResponse.json(ingestTelemetryInDb(payload), { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "telemetry ingest failed" },
+      { status: 400 }
+    );
+  }
 }

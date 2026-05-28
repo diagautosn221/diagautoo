@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "backend:smoke": "node scripts/backend-smoke.mjs",
+    "backend:smoke:write": "node scripts/backend-smoke.mjs --write",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

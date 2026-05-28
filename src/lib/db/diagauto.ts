@@ -27,6 +27,15 @@ type OverviewRow = {
   projectedRevenue: number | null;
 };
 
+type HealthCounts = {
+  clients: number;
+  vehicles: number;
+  connectedDevices: number;
+  unresolvedAlerts: number;
+  openWorkOrders: number;
+  pendingNotifications: number;
+};
+
 export type DiagnosticPayload = {
   client?: string;
   vehicle?: string;
@@ -86,6 +95,43 @@ function getDatabase() {
   }
 
   return cachedDb;
+}
+
+export function getBackendHealthFromDb() {
+  const db = getDatabase();
+  const counts = db
+    .prepare<HealthCounts>(`
+      SELECT
+        (SELECT COUNT(*) FROM clients) AS clients,
+        (SELECT COUNT(*) FROM vehicles) AS vehicles,
+        (SELECT COUNT(*) FROM iot_devices WHERE status = 'active') AS connectedDevices,
+        (SELECT COUNT(*) FROM alerts WHERE resolved_at IS NULL) AS unresolvedAlerts,
+        (SELECT COUNT(*) FROM work_orders WHERE status != 'livraison') AS openWorkOrders,
+        (SELECT COUNT(*) FROM notifications WHERE status != 'envoye') AS pendingNotifications
+    `)
+    .get();
+
+  const warnings = [
+    !counts || counts.clients === 0 ? "no clients in database" : null,
+    !counts || counts.vehicles === 0 ? "no vehicles in database" : null,
+    !counts || counts.connectedDevices === 0 ? "no active iot devices" : null,
+  ].filter(Boolean);
+
+  return {
+    checkedAt: new Date().toISOString(),
+    storage: "node:sqlite",
+    databaseFile: dbPath,
+    integrity: warnings.length === 0 ? "operational" : "degraded",
+    counts: counts ?? {
+      clients: 0,
+      vehicles: 0,
+      connectedDevices: 0,
+      unresolvedAlerts: 0,
+      openWorkOrders: 0,
+      pendingNotifications: 0,
+    },
+    warnings,
+  };
 }
 
 function migrate(db: Database) {
@@ -747,6 +793,10 @@ export function getGarageOverviewFromDb() {
   };
 }
 
+function getGarageOverviewPayload() {
+  return { ...getGarageOverviewFromDb(), source: "sqlite" as const };
+}
+
 export function createDiagnosticInDb(payload: DiagnosticPayload) {
   const db = getDatabase();
   const now = new Date();
@@ -857,7 +907,7 @@ export function ingestTelemetryInDb(payload: TelemetryPayload) {
       status: severity,
       updatedAt,
     },
-    overview: getGarageOverviewFromDb(),
+    overview: getGarageOverviewPayload(),
   };
 }
 
@@ -943,7 +993,7 @@ export function runGarageActionInDb(payload: GarageActionPayload) {
     return {
       message: `Reception creee pour ${clientName}`,
       recordId: orderId,
-      overview: getGarageOverviewFromDb(),
+      overview: getGarageOverviewPayload(),
     };
   }
 
@@ -974,7 +1024,7 @@ export function runGarageActionInDb(payload: GarageActionPayload) {
     return {
       message: `Devis ${estimateId} approuve`,
       recordId: estimateId,
-      overview: getGarageOverviewFromDb(),
+      overview: getGarageOverviewPayload(),
     };
   }
 
@@ -1004,7 +1054,7 @@ export function runGarageActionInDb(payload: GarageActionPayload) {
     return {
       message: `${amount.toLocaleString("fr-FR")} F encaisses`,
       recordId: invoiceId,
-      overview: getGarageOverviewFromDb(),
+      overview: getGarageOverviewPayload(),
     };
   }
 
@@ -1014,7 +1064,7 @@ export function runGarageActionInDb(payload: GarageActionPayload) {
     return {
       message: `Alerte ${alertId} resolue`,
       recordId: alertId,
-      overview: getGarageOverviewFromDb(),
+      overview: getGarageOverviewPayload(),
     };
   }
 
@@ -1024,7 +1074,7 @@ export function runGarageActionInDb(payload: GarageActionPayload) {
     return {
       message: `Relance ${notificationId} envoyee`,
       recordId: notificationId,
-      overview: getGarageOverviewFromDb(),
+      overview: getGarageOverviewPayload(),
     };
   }
 
