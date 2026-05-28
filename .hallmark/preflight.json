@@ -1,0 +1,11 @@
+{
+  "scannedAt": "2026-05-28",
+  "framework": "Next.js 15 app router",
+  "styling": "Tailwind CSS v4 via @tailwindcss/postcss",
+  "fontStack": "Aptos Display / Segoe UI Variable / Satoshi / Geist",
+  "palette": "red and off-black OKLCH tokens in src/app/globals.css",
+  "motion": "framer-motion 11 installed",
+  "spacing": "Tailwind utilities plus Hallmark 4-point tokens",
+  "preserve": ["Next routes", "SQLite-backed API contracts", "garage/client data flow"],
+  "introduce": ["Split Workbench macrostructure", "locked tokens.css", "mobile overflow-x clip"]
+}

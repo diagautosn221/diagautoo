@@ -527,57 +527,43 @@ export function OperationsConsole() {
       <div className="pointer-events-none absolute inset-y-0 left-[7vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-45 lg:block" />
       <div className="pointer-events-none absolute inset-y-0 right-[18vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-28 lg:block" />
       <div className="container-tight">
-        <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">DiagAutoSN garage OS</p>
-            <h2 className="mt-2 font-display text-3xl font-black leading-none tracking-[-0.055em] md:text-5xl">
-              Poste de controle atelier
-            </h2>
-          </div>
-          <div className="command-input flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4">
-            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-              <span className={`size-2 rounded-full ${backendIsLive ? "bg-[var(--color-success)]" : "bg-[var(--color-danger)]"} live-dot`} />
-              {backendIsLive ? "backend live" : "backend degrade"}
-            </span>
-            <span className="font-mono text-sm font-black text-[var(--color-fg)]">{lastHealthCheck}</span>
-          </div>
-        </div>
-
-        <div className="mb-5 grid gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] md:grid-cols-4">
-          {[
-            ["API garage", backendIsLive ? "operationnelle" : "a verifier", "/api/health"],
-            ["Stockage", backendHealth?.storage || "node:sqlite", overview.source === "sqlite" ? "sqlite" : "fallback"],
-            ["Contrats", backendHealth ? `${backendHealth.counts.clients}/${backendHealth.counts.vehicles}` : "hors ligne", "clients/vehicules"],
-            ["Alertes", backendHealth ? backendHealth.counts.unresolvedAlerts : overview.alerts.length, "non resolues"],
-          ].map(([label, value, caption]) => (
-            <div key={label} className="bg-[#0b090a] px-4 py-4">
-              <div className="tabular font-mono text-lg font-black text-[var(--color-fg)]">{value}</div>
-              <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">{label}</span>
-                <span className="truncate text-right font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
-                  {caption}
-                </span>
+        <div className="mb-6 grid gap-5 xl:grid-cols-[0.86fr_1.14fr]">
+          <article className="hallmark-stage relative overflow-hidden rounded-[30px] p-5 md:p-7">
+            <div className="absolute left-0 top-8 h-32 w-1 status-rail" />
+            <div className="relative grid gap-5">
+              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+                <div className="min-w-0 pl-2">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">
+                    DiagAutoSN garage OS
+                  </p>
+                  <h2 className="mt-3 max-w-[9ch] text-balance font-display text-4xl font-black leading-[0.86] tracking-[-0.065em] md:text-6xl">
+                    Poste de controle atelier
+                  </h2>
+                </div>
+                <div className="command-rail flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4 md:min-w-60">
+                  <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                    <span className={`size-2 rounded-full ${backendIsLive ? "bg-[var(--color-success)]" : "bg-[var(--color-danger)]"} live-dot`} />
+                    {backendIsLive ? "backend live" : "backend degrade"}
+                  </span>
+                  <span className="font-mono text-sm font-black text-[var(--color-fg)]">{lastHealthCheck}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="mb-5 grid gap-4 xl:grid-cols-[1.05fr_0.95fr_0.7fr]">
-          <article className="ops-surface relative overflow-hidden rounded-[28px] p-5">
-            <div className="absolute left-0 top-6 h-28 w-1 status-rail" />
-            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-              <div className="max-w-2xl pl-2">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">decision maintenant</p>
-                <h3 className="mt-3 text-3xl font-black leading-[0.95] tracking-[-0.055em] md:text-4xl">
+              <div className="pl-2">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+                  decision maintenant
+                </p>
+                <h3 className="mt-3 max-w-[13ch] text-3xl font-black leading-[0.94] tracking-[-0.055em] md:text-4xl">
                   {criticalAlert ? criticalAlert.label : "Atelier sous controle"}
                 </h3>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--color-fg-muted)]">
+                <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--color-fg-muted)]">
                   {criticalAlert
                     ? `${criticalAlert.client} - ${criticalAlert.vehicle}. ${criticalAlert.due}.`
                     : "Les receptions, les capteurs et les relances client sont synchronises."}
                 </p>
               </div>
-              <div className="grid gap-2 md:min-w-48">
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={createDiagnostic}
@@ -595,42 +581,53 @@ export function OperationsConsole() {
                   {isSendingIot ? "Signal..." : "Injecter signal IoT"}
                 </button>
               </div>
-            </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-4">
-              {[
-                ["clients", overview.summary.clients],
-                ["vehicules", overview.summary.vehicles],
-                ["capteurs", overview.summary.connectedDevices],
-                ["cash", `${cashToCollect.toLocaleString("fr-FR")} F`],
-              ].map(([label, value]) => (
-                <div key={label} className="bg-[#0d0b0c] p-4">
-                  <div className="tabular font-mono text-xl font-black text-[var(--color-fg)]">{value}</div>
-                  <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">{label}</div>
-                </div>
-              ))}
+              <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-2">
+                {[
+                  ["API", backendIsLive ? "live" : "degrade", "/api/health"],
+                  ["DB", backendHealth?.storage || "node:sqlite", overview.source === "sqlite" ? "sqlite" : "fallback"],
+                  ["clients", overview.summary.clients, `${overview.summary.vehicles} vehicules`],
+                  ["cash", `${cashToCollect.toLocaleString("fr-FR")} F`, "a encaisser"],
+                ].map(([label, value, caption]) => (
+                  <div key={label} className="metric-slab p-4">
+                    <div className="tabular min-w-0 break-words font-mono text-lg font-black text-[var(--color-fg)] md:text-xl">{value}</div>
+                    <div className="mt-2 flex min-w-0 items-center justify-between gap-3">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">{label}</span>
+                      <span className="truncate text-right font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
+                        {caption}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </article>
 
-          <article className="ops-surface rounded-[28px] p-5">
+          <VehicleCommandStage priorityAlerts={priorityAlerts} connectedDevices={overview.summary.connectedDevices} />
+        </div>
+
+        <div className="mb-5 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+          <article className="ops-surface rounded-[24px] p-5">
             <SectionHeader eyebrow="baies atelier" title="Equipe et charge" action={`${busyTeam}/${overview.team.length}`} />
-            <div className="mt-5 grid gap-2">
+            <div className="mt-5 grid gap-2 md:grid-cols-3">
               {overview.team.slice(0, 3).map((member) => (
-                <div key={member.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-[var(--color-border)] pt-3 first:border-t-0 first:pt-0">
-                  <span className={`size-2 rounded-full ${member.status === "disponible" ? "bg-[var(--color-success)]" : "bg-[var(--color-accent)]"}`} />
+                <div key={member.id} className="grid gap-3 border-t border-[var(--color-border)] pt-3 first:border-t-0 md:border-l md:border-t-0 md:pl-4 md:pt-0 md:first:border-l-0 md:first:pl-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className={`size-2 rounded-full ${member.status === "disponible" ? "bg-[var(--color-success)]" : "bg-[var(--color-accent)]"}`} />
+                    <span className="rounded-[10px] border border-[var(--color-border)] px-2 py-1 font-mono text-[10px] text-[var(--color-accent)]">{member.bay}</span>
+                  </div>
                   <div>
                     <div className="text-sm font-black tracking-[-0.02em]">{member.fullName}</div>
-                    <div className="mt-1 truncate text-xs text-[var(--color-fg-muted)]">{member.currentOperation || member.role}</div>
+                    <div className="mt-1 text-xs leading-5 text-[var(--color-fg-muted)]">{member.currentOperation || member.role}</div>
                   </div>
-                  <span className="rounded-[10px] border border-[var(--color-border)] px-2 py-1 font-mono text-[10px] text-[var(--color-accent)]">{member.bay}</span>
                 </div>
               ))}
             </div>
           </article>
 
-          <article className="ops-surface rounded-[28px] p-5">
+          <article className="ops-surface rounded-[24px] p-5">
             <SectionHeader eyebrow="file risque" title="Alertes a traiter" action={`${overview.summary.urgentAlerts}`} />
-            <div className="mt-5 grid gap-2">
+            <div className="mt-5 grid gap-2 md:grid-cols-2">
               {overview.alerts.slice(0, 4).map((alert) => (
                 <button
                   key={alert.id}

@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-05-28",
+    "macrostructure": "Split Workbench",
+    "theme": "custom automotive red-black",
+    "enrichment": "Tier-A CSS vehicle scan",
+    "scope": "atelier cockpit",
+    "brief": "Improve DiagAutoSN frontend with Hallmark anti-slop rules"
+  }
+]

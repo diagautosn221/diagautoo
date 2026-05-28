@@ -1,24 +1,27 @@
+/* Hallmark · macrostructure: Split Workbench · tone: automotive command · anchor hue: red · contrast: pass (46-50) · mobile: pass targets queued */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 */
 @import "tailwindcss";
+@import "../../tokens.css";
 
 @theme {
-  --color-bg: #0a0808;
-  --color-bg-elevated: #121011;
-  --color-surface: #181314;
-  --color-surface-2: #24191a;
-  --color-border: #302528;
-  --color-border-strong: #613036;
+  --color-bg: oklch(0.13 0.018 24);
+  --color-bg-elevated: oklch(0.17 0.021 25);
+  --color-surface: oklch(0.21 0.026 25);
+  --color-surface-2: oklch(0.27 0.037 25);
+  --color-border: oklch(0.29 0.035 25);
+  --color-border-strong: oklch(0.43 0.085 24);
 
-  --color-fg: #fbf3f0;
-  --color-fg-muted: #c7b8b4;
-  --color-fg-subtle: #8e7d7a;
+  --color-fg: oklch(0.96 0.012 44);
+  --color-fg-muted: oklch(0.78 0.026 39);
+  --color-fg-subtle: oklch(0.61 0.026 35);
 
-  --color-accent: #df4438;
-  --color-accent-soft: #f06558;
-  --color-accent-ink: #200707;
+  --color-accent: oklch(0.61 0.205 28);
+  --color-accent-soft: oklch(0.68 0.19 28);
+  --color-accent-ink: oklch(0.14 0.052 27);
 
-  --color-warn: #f08a4b;
-  --color-danger: #ff4d4d;
-  --color-success: #63b37b;
+  --color-warn: oklch(0.72 0.15 55);
+  --color-danger: oklch(0.64 0.22 25);
+  --color-success: oklch(0.68 0.12 148);
 
   --font-display: "Aptos Display", "Segoe UI Variable Display", "Satoshi", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body: Aptos, "Segoe UI Variable Text", "Satoshi", "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -45,6 +48,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 html,
@@ -58,7 +62,7 @@ body {
 
 body {
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 7% 4%, rgba(223, 68, 56, 0.16), transparent 28rem),
     radial-gradient(circle at 82% 0%, rgba(251, 243, 240, 0.06), transparent 32rem),
@@ -180,6 +184,31 @@ textarea:focus-visible {
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(223, 68, 56, 0.1),
     0 40px 130px rgba(0, 0, 0, 0.42);
+}
+
+@utility hallmark-stage {
+  border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  background:
+    linear-gradient(130deg, rgba(223, 68, 56, 0.13), transparent 30%),
+    radial-gradient(circle at 76% 16%, rgba(251, 243, 240, 0.08), transparent 18rem),
+    linear-gradient(180deg, rgba(14, 12, 12, 0.96), rgba(7, 6, 7, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 42px 140px rgba(0, 0, 0, 0.42);
+}
+
+@utility command-rail {
+  border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
+  background:
+    linear-gradient(90deg, rgba(223, 68, 56, 0.13), transparent 34%),
+    rgba(7, 6, 7, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+@utility metric-slab {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 255, 255, 0.01)),
+    color-mix(in srgb, var(--color-bg-elevated) 90%, black);
 }
 
 @utility hairline-card {
