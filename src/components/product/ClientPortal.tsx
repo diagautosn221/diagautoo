@@ -76,6 +76,15 @@ type ClientActionResponse = {
   portal: ClientPortalData;
 };
 
+const clientVehiclePhoto = "https://images.pexels.com/photos/4639907/pexels-photo-4639907.jpeg?auto=compress&cs=tinysrgb&w=1200";
+
+const clientQuickControls: Array<[string, string]> = [
+  ["Statut", "En ligne"],
+  ["Position", "Dakar"],
+  ["Rappel", "Atelier"],
+  ["OBD", "Actif"],
+];
+
 function severityClass(severity?: string) {
   if (severity === "blocked") return "border-[var(--color-danger)]/45 bg-[var(--color-danger)]/12 text-[var(--color-danger)]";
   if (severity === "urgent") return "border-[var(--color-accent)]/45 bg-[var(--color-accent)]/12 text-[var(--color-accent)]";
@@ -168,29 +177,46 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
     <main className="min-h-[100dvh] overflow-hidden py-8">
       <div className="container-tight">
         <section className="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
-          <div className="ops-surface relative overflow-hidden rounded-[30px] p-5 md:p-6">
-            <div className="absolute left-0 top-8 h-28 w-1 status-rail" />
-            <p className="pl-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              carnet connecte
-            </p>
-            <div className="mt-4 grid gap-4 pl-2">
-              <div>
-                <h1 className="max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.9] tracking-[-0.065em] md:text-5xl">
+          <div className="relative overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-white p-3 shadow-[0_24px_90px_color-mix(in_srgb,var(--color-fg)_10%,transparent)] md:p-4">
+            <div className="relative overflow-hidden rounded-[26px] bg-[var(--color-fg)] text-white">
+              <img src={clientVehiclePhoto} alt={vehicleLabel} className="h-64 w-full object-cover" />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-fg)] to-transparent p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/62">carnet connecte</p>
+                <h1 className="mt-2 max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.9] tracking-[-0.065em] md:text-5xl">
                   {vehicleLabel}
                 </h1>
-                <p className="mt-3 text-sm leading-6 text-[var(--color-fg-muted)]">
+                <p className="mt-3 text-sm leading-6 text-white/70">
                   {clientName} suit l'etat du vehicule, les documents, les devis et les paiements.
                 </p>
               </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {clientQuickControls.map(([label, value]) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="grid min-h-[74px] place-items-center rounded-[18px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-2 text-center transition hover:border-[var(--color-accent)] active:scale-[0.98]"
+                >
+                  <span className="grid size-7 place-items-center rounded-full bg-[var(--color-accent)] text-[11px] font-black text-white">
+                    {label.slice(0, 1)}
+                  </span>
+                  <span className="text-[10px] font-black leading-3">{label}</span>
+                  <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-[var(--color-fg-subtle)]">{value}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 grid gap-4">
               <div className="grid grid-cols-3 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)]">
                 {[
                   ["score", vehicle?.healthScore ?? 0],
                   ["plaque", vehicle?.plate || "DK 4582 AA"],
                   ["km", (vehicle?.mileage ?? 0).toLocaleString("fr-FR")],
                 ].map(([label, value]) => (
-                  <div key={label} className="bg-[#0d0d10] p-3">
-                    <div className="tabular font-mono text-sm font-black text-[var(--color-fg)]">{value}</div>
-                    <div className="mt-2 font-mono text-[8px] uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">{label}</div>
+                  <div key={label} className="bg-[var(--color-fg)] p-3">
+                    <div className="tabular font-mono text-sm font-black text-white">{value}</div>
+                    <div className="mt-2 font-mono text-[8px] uppercase tracking-[0.12em] text-white/50">{label}</div>
                   </div>
                 ))}
               </div>
