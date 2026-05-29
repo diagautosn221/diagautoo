@@ -36,18 +36,16 @@ export function Nav() {
           }`}
           aria-label="Navigation principale"
         >
-          <Link href="/" className="group flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-[10px] border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12">
-              <span className="h-3 w-5 rounded-sm border border-[var(--color-accent)]">
-                <span className="mx-auto mt-1 block h-1 w-1 rounded-full bg-[var(--color-accent)]" />
-              </span>
-            </span>
-            <span className="font-mono text-[12px] font-semibold tracking-[0.14em] text-[var(--color-fg)] sm:text-[13px] sm:tracking-[0.18em]">
-              <span className="sm:hidden">DASN</span>
-              <span className="hidden sm:inline">
-                DIAGAUTO<span className="text-[var(--color-accent)]">SN</span>
-              </span>
-            </span>
+          <Link
+            href="/"
+            className="group inline-flex min-h-11 shrink items-center rounded-[14px] bg-white px-3 shadow-[0_12px_34px_color-mix(in_srgb,var(--color-fg)_8%,transparent)] ring-1 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)]"
+            aria-label="Diag auto sn - accueil"
+          >
+            <img
+              src="/diagautosn-logo.svg"
+              alt="Diag auto sn"
+              className="h-8 w-[138px] object-contain sm:h-9 sm:w-[170px]"
+            />
           </Link>
 
           <ul className="hidden items-center gap-1 md:flex">
