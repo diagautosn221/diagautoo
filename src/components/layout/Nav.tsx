@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
+  { href: "#vehicle-ai", label: "Vehicle AI" },
   { href: "#services", label: "Services" },
   { href: "/atelier", label: "Atelier" },
   { href: "/carnet", label: "Client" },

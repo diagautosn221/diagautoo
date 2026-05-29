@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { VehicleAiAssistant } from "@/components/product/VehicleAiAssistant";
 
 type PublicHomeProps = {
   site: {
@@ -388,6 +389,10 @@ export function PublicHome({ site }: PublicHomeProps) {
             </article>
           ))}
         </div>
+      </section>
+
+      <section id="vehicle-ai" className="container-tight pb-20">
+        <VehicleAiAssistant />
       </section>
 
       <section id="services" className="container-tight pb-20">

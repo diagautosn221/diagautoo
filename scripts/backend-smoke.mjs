@@ -87,6 +87,25 @@ report.cms = {
   auditEvents: cms.cms.auditEvents.length,
 };
 
+const vehicleAi = await post(
+  "/api/vehicle-ai",
+  {
+    notes: "Toyota Prado blanc plaque DK 4582 AA fumee moteur et vidange proche",
+    plate: "DK 4582 AA",
+    mileage: 124800,
+    fileName: "toyota-prado-dakar.jpg",
+  },
+  "vehicle ai"
+);
+assert(vehicleAi.result?.likelyVehicle, "vehicle ai did not return likely vehicle");
+assert(vehicleAi.result?.confidence >= 50, "vehicle ai confidence is unexpectedly low");
+assert(Array.isArray(vehicleAi.result?.checklist), "vehicle ai checklist must be an array");
+report.vehicleAi = {
+  likelyVehicle: vehicleAi.result.likelyVehicle,
+  confidence: vehicleAi.result.confidence,
+  riskLevel: vehicleAi.result.riskLevel,
+};
+
 if (mutationEnabled) {
   const telemetry = await post(
     "/api/iot/telemetry",
