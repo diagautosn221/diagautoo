@@ -42,9 +42,9 @@ export function Nav() {
             aria-label="Diag auto sn - accueil"
           >
             <img
-              src="/diagautosn-logo.svg"
+              src="/diagautosn-logo.png"
               alt="Diag auto sn"
-              className="h-8 w-[138px] object-contain sm:h-9 sm:w-[170px]"
+              className="h-8 w-[132px] object-contain sm:h-9 sm:w-[158px]"
             />
           </Link>
 
