@@ -177,11 +177,11 @@ type BackendHealth = {
 };
 
 const tabs: Array<{ key: TabKey; label: string; caption: string }> = [
-  { key: "atelier", label: "Atelier", caption: "operations" },
-  { key: "client", label: "Client", caption: "compte" },
-  { key: "iot", label: "IoT", caption: "capteurs" },
-  { key: "alertes", label: "Alertes", caption: "risques" },
-  { key: "finance", label: "Ops", caption: "devis" },
+  { key: "atelier", label: "Atelier", caption: "ce qui tourne" },
+  { key: "client", label: "Clients", caption: "qui attend quoi" },
+  { key: "iot", label: "Boîtiers", caption: "ce qui remonte" },
+  { key: "alertes", label: "Alertes", caption: "à traiter" },
+  { key: "finance", label: "Argent", caption: "devis & factures" },
 ];
 
 const visualMarkers = [
@@ -562,16 +562,16 @@ export function OperationsConsole() {
               <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
                 <div className="min-w-0 pl-2">
                   <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">
-                    DiagAutoSN garage OS
+                    Le poste de l'atelier
                   </p>
-                  <h2 className="mt-3 max-w-[9ch] text-balance font-display text-4xl font-black leading-[0.86] tracking-[-0.065em] md:text-6xl">
-                    Poste de controle atelier
+                  <h2 className="mt-3 max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.86] tracking-[-0.065em] md:text-6xl">
+                    Tout ton garage, sur un seul écran.
                   </h2>
                 </div>
                 <div className="command-rail flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4 md:min-w-60">
                   <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
                     <span className={`size-2 rounded-full ${backendIsLive ? "bg-[var(--color-success)]" : "bg-[var(--color-danger)]"} live-dot`} />
-                    {backendIsLive ? "backend live" : "backend degrade"}
+                    {backendIsLive ? "système en ligne" : "système ralenti"}
                   </span>
                   <span className="font-mono text-sm font-black text-[var(--color-fg)]">{lastHealthCheck}</span>
                 </div>
@@ -579,15 +579,15 @@ export function OperationsConsole() {
 
               <div className="pl-2">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-                  decision maintenant
+                  à traiter maintenant
                 </p>
-                <h3 className="mt-3 max-w-[13ch] text-3xl font-black leading-[0.94] tracking-[-0.055em] md:text-4xl">
-                  {criticalAlert ? criticalAlert.label : "Atelier sous controle"}
+                <h3 className="mt-3 max-w-[15ch] text-3xl font-black leading-[0.94] tracking-[-0.055em] md:text-4xl">
+                  {criticalAlert ? criticalAlert.label : "Tout est sous contrôle."}
                 </h3>
                 <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--color-fg-muted)]">
                   {criticalAlert
-                    ? `${criticalAlert.client} - ${criticalAlert.vehicle}. ${criticalAlert.due}.`
-                    : "Les receptions, les capteurs et les relances client sont synchronises."}
+                    ? `${criticalAlert.client} · ${criticalAlert.vehicle}. À traiter avant le ${criticalAlert.due}.`
+                    : "Réceptions, boîtiers et relances clients sont à jour. Rien d'urgent."}
                 </p>
               </div>
 
@@ -598,7 +598,7 @@ export function OperationsConsole() {
                   disabled={isCreating}
                   className="min-h-12 rounded-[14px] bg-[var(--color-accent)] px-5 text-sm font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition duration-200 hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isCreating ? "Creation..." : "Ouvrir diagnostic"}
+                  {isCreating ? "On ouvre…" : "Ouvrir un diagnostic"}
                 </button>
                 <button
                   type="button"
@@ -606,16 +606,16 @@ export function OperationsConsole() {
                   disabled={isSendingIot}
                   className="min-h-12 rounded-[14px] border border-[var(--color-border)] bg-white/[0.035] px-5 text-sm font-black text-[var(--color-fg)] transition duration-200 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSendingIot ? "Signal..." : "Injecter signal IoT"}
+                  {isSendingIot ? "Envoi…" : "Simuler un signal boîtier"}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-2">
                 {[
-                  ["API", backendIsLive ? "live" : "degrade", "/api/health"],
-                  ["DB", backendHealth?.storage || "node:sqlite", overview.source === "sqlite" ? "sqlite" : "fallback"],
-                  ["clients", overview.summary.clients, `${overview.summary.vehicles} vehicules`],
-                  ["cash", `${cashToCollect.toLocaleString("fr-FR")} F`, "a encaisser"],
+                  ["système", backendIsLive ? "en ligne" : "ralenti", "monitoring"],
+                  ["base", overview.source === "sqlite" ? "OK" : "secours", overview.source === "sqlite" ? "données fraîches" : "mode dégradé"],
+                  ["clients", overview.summary.clients, `${overview.summary.vehicles} véhicules`],
+                  ["à encaisser", `${cashToCollect.toLocaleString("fr-FR")} F`, "factures ouvertes"],
                 ].map(([label, value, caption]) => (
                   <div key={label} className="metric-slab p-4">
                     <div className="tabular min-w-0 break-words font-mono text-lg font-black text-[var(--color-fg)] md:text-xl">{value}</div>
@@ -636,7 +636,7 @@ export function OperationsConsole() {
 
         <div className="mb-5 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
           <article className="ops-surface rounded-[24px] p-5">
-            <SectionHeader eyebrow="baies atelier" title="Equipe et charge" action={`${busyTeam}/${overview.team.length}`} />
+            <SectionHeader eyebrow="Qui est où, en ce moment" title="L'équipe en baie" action={`${busyTeam}/${overview.team.length} occupés`} />
             <div className="mt-5 grid gap-2 md:grid-cols-3">
               {overview.team.slice(0, 3).map((member) => (
                 <div key={member.id} className="grid gap-3 border-t border-[var(--color-border)] pt-3 first:border-t-0 md:border-l md:border-t-0 md:pl-4 md:pt-0 md:first:border-l-0 md:first:pl-0">
@@ -654,7 +654,7 @@ export function OperationsConsole() {
           </article>
 
           <article className="ops-surface rounded-[24px] p-5">
-            <SectionHeader eyebrow="file risque" title="Alertes a traiter" action={`${overview.summary.urgentAlerts}`} />
+            <SectionHeader eyebrow="À ne pas laisser traîner" title="Alertes urgentes" action={`${overview.summary.urgentAlerts} en attente`} />
             <div className="mt-5 grid gap-2 md:grid-cols-2">
               {overview.alerts.slice(0, 4).map((alert) => (
                 <button
@@ -808,7 +808,7 @@ export function OperationsConsole() {
                       </form>
                       <div className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
                         <div className="hairline-card rounded-[22px] p-4">
-                          <SectionHeader eyebrow="dispatch" title="Equipe en baie" action={`${busyTeam}/${overview.team.length}`} />
+                          <SectionHeader eyebrow="Répartition" title="Mécanos en baie" action={`${busyTeam}/${overview.team.length} occupés`} />
                           <div className="mt-5 grid gap-2">
                             {overview.team.map((member) => (
                               <article key={member.id} className="field-surface rounded-[16px] p-3">
@@ -834,7 +834,7 @@ export function OperationsConsole() {
                           </div>
                         </div>
                         <div className="hairline-card rounded-[22px] p-4">
-                          <SectionHeader eyebrow="controle qualite" title="Inspections digitales" action={`${blockedInspections} blocage`} />
+                          <SectionHeader eyebrow="Contrôle qualité" title="Inspections en cours" action={`${blockedInspections} bloquantes`} />
                           <div className="mt-5 grid gap-3">
                             {overview.inspections.slice(0, 3).map((inspection) => (
                               <article key={inspection.id} className="field-surface rounded-[18px] p-4">
@@ -887,7 +887,7 @@ export function OperationsConsole() {
                         </div>
                       ))}
                       <div className="hairline-card rounded-[22px] p-4">
-                        <SectionHeader eyebrow="timeline atelier" title="Ordres en cours" action={`${overview.workOrders.length} actifs`} />
+                        <SectionHeader eyebrow="Ce qui tourne dans l'atelier" title="Interventions en cours" action={`${overview.workOrders.length} actives`} />
                         <div className="mt-5 grid gap-0 overflow-hidden rounded-[18px] border border-[var(--color-border)]">
                           {overview.workOrders.map((order, index) => (
                             <article
@@ -923,17 +923,17 @@ export function OperationsConsole() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--color-fg-subtle)]">
-                              comptes clients actifs
+                              Nos clients équipés
                             </p>
                             <h3 className="mt-2 text-2xl font-black tracking-[-0.045em]">
-                              {overview.clients.length} clients suivis
+                              {overview.clients.length} propriétaires accompagnés
                             </h3>
                             <p className="mt-2 text-sm text-[var(--color-fg-muted)]">
-                              Chaque compte lit les alertes, le capteur et les dossiers atelier depuis la base.
+                              Chacun voit son carnet en direct depuis son téléphone. Ce que tu fais ici, ils le voient là-bas.
                             </p>
                           </div>
                           <span className="rounded-lg bg-[var(--color-success)]/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-success)]">
-                            portail actif
+                            tous en ligne
                           </span>
                         </div>
                         <div className="mt-6 grid gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)]">
@@ -987,7 +987,7 @@ export function OperationsConsole() {
                   {activeTab === "iot" ? (
                     <div className="grid gap-4">
                       <div className="hairline-card rounded-[22px] p-4">
-                        <SectionHeader eyebrow="telemetrie embarquee" title="Capteurs voiture connectee" action={`${overview.signals.length} flux`} />
+                        <SectionHeader eyebrow="Ce que remontent les boîtiers" title="Voitures connectées" action={`${overview.signals.length} signaux`} />
                         <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-fg-muted)]">
                           Les boitiers IoT remontent les anomalies moteur, les rappels vidange, assurance et visite technique pour le garage et le compte client.
                         </p>
@@ -1168,7 +1168,7 @@ export function OperationsConsole() {
                   {activeTab === "alertes" ? (
                     <div className="grid gap-4">
                       <div className="hairline-card rounded-[22px] p-4">
-                        <SectionHeader eyebrow="rappels critiques" title="Vidange, assurance, visite" action={`${overview.alerts.length} alertes`} />
+                        <SectionHeader eyebrow="Échéances client" title="Vidange · assurance · visite" action={`${overview.alerts.length} à suivre`} />
                         <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-fg-muted)]">
                           Les alertes administratives et mecaniques sont visibles cote garage et cote client pour eviter les oublis de suivi.
                         </p>
@@ -1224,7 +1224,7 @@ export function OperationsConsole() {
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
                     visual map
                   </p>
-                  <h3 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Etat vehicule prioritaire</h3>
+                  <h3 className="mt-2 text-2xl font-semibold tracking-[-0.045em]">Voiture à voir en priorité</h3>
                 </div>
                 <span className="tabular font-mono text-3xl font-semibold text-[var(--color-accent)]">
                   {priorityAlerts.length}

@@ -7,20 +7,20 @@ import { PhotoCockpit, type PhotoCockpitAlert } from "@/components/carnet/PhotoC
 const demoAlerts: PhotoCockpitAlert[] = [
   {
     id: "demo-1",
-    label: "Ta voiture pollue plus que d'habitude",
-    source: "À montrer au garage cette semaine",
+    label: "Voyant moteur · à montrer à ton mécano cette semaine",
+    source: "On lui envoie déjà le rapport",
     severity: "urgent",
   },
   {
     id: "demo-2",
-    label: "Démarrage parfois difficile le matin",
-    source: "À surveiller, pas urgent",
+    label: "Batterie un peu faiblarde le matin",
+    source: "Garde-la à l'œil avant qu'elle te lâche",
     severity: "watch",
   },
   {
     id: "demo-3",
-    label: "Batterie un peu basse au démarrage",
-    source: "Penser à vérifier",
+    label: "Vidange dans 800 km · ndank ndank",
+    source: "On te rappellera quand ce sera le moment",
     severity: "watch",
   },
 ];
@@ -32,16 +32,17 @@ export function LockedPreview() {
         <header className="mb-10 grid gap-6 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Voici à quoi ça ressemble
+              Sa oto, dans ta poche · voici à quoi ça ressemble
             </p>
             <h2 className="mt-4 text-balance font-display text-4xl font-semibold leading-[1.02] tracking-[-0.04em] md:text-5xl">
-              Ta voiture, en direct, sur ton téléphone.
+              Ta voiture, en direct, comme un appel WhatsApp.
             </h2>
           </div>
           <p className="md:col-span-5 text-base leading-7 text-[var(--color-fg-muted)]">
             On a fait simple : ta voiture est là, son état est clair, et quand
             quelque chose ne va pas, on te le dit dans une phrase que tu
-            comprends — pas en code technique.
+            comprends, avec la prochaine action à faire. Aucune plaque réelle,
+            aucun VIN réel et aucun kilométrage client ne sont affichés ici.
           </p>
         </header>
 
@@ -49,15 +50,14 @@ export function LockedPreview() {
           {/* Underlying preview — real PhotoCockpit, sample data only. */}
           <div className="pointer-events-none select-none">
             <PhotoCockpit
-              brand="Mercedes"
-              model="C220 d"
-              vehicleLabel="Mercedes C220 d"
-              plate="DK XXXX AA"
-              vin="WDDXXXXXXXX2004"
-              mileage={124800}
+              brand="Toyota"
+              model="SUV"
+              vehicleLabel="Voiture équipée"
+              mileage={0}
               healthScore={82}
               alerts={demoAlerts}
               lastSeenAt={new Date(Date.now() - 90_000).toISOString()}
+              privacyMode
             />
           </div>
 
@@ -80,11 +80,11 @@ export function LockedPreview() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/92 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-muted)] backdrop-blur-md">
               <LockGlyph />
-              Accessible une fois ton boîtier installé
+              Aperçu anonymisé · accès complet après installation
             </span>
 
             <h3 className="max-w-[30ch] text-balance font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-[var(--color-fg)] md:text-3xl">
-              Tu veux voir ta voiture comme ça ?
+              Tu veux voir sa oto comme ça ? Dafa neex, na nu démarre.
             </h3>
 
             <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3">
@@ -92,7 +92,7 @@ export function LockedPreview() {
                 href="#contact"
                 className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--color-accent)] px-6 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px"
               >
-                Je veux le boîtier
+                Demander l'installation
               </Link>
               <Link
                 href="/login"

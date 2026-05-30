@@ -253,10 +253,10 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
               disabled={busy}
               className="inline-flex min-h-12 items-center justify-center rounded-[12px] bg-[var(--color-accent)] px-6 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:opacity-60"
             >
-              {busy ? "Provisioning…" : "Lancer l'installation"}
+              {busy ? "On installe…" : "Brancher le kit · ouvrir le carnet"}
             </button>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-              kit + compte + 3 signaux nominaux · 1 clic
+              Boîtier branché + compte créé + 3 mesures vitales · en 1 clic
             </p>
           </div>
         </form>
@@ -272,7 +272,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
               className="mt-7 rounded-[20px] border border-[var(--color-success)]/35 bg-[var(--color-success)]/8 p-5"
             >
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-success)]">
-                ✓ Installation enregistrée · transmettez ces identifiants au client
+                ✓ Carnet ouvert · donne ces identifiants au client (à recopier, ne réapparaîtront pas)
               </p>
               <h3 className="mt-2 font-display text-xl font-semibold tracking-[-0.02em]">
                 {result.client.fullName} · {result.vehicle.brand} {result.vehicle.model} ({result.vehicle.plate})
@@ -302,14 +302,14 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
                   href={`/atelier/clients/${result.client.id}`}
                   className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[var(--color-fg)] bg-[var(--color-fg)] px-4 font-mono text-[10px] uppercase tracking-[0.14em] text-white transition hover:bg-[var(--color-fg-muted)]"
                 >
-                  Ouvrir la fiche client
+                  Voir le carnet de ce client
                 </Link>
                 <button
                   type="button"
                   onClick={reset}
                   className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[var(--color-border)] bg-white px-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
                 >
-                  Nouvelle installation
+                  Brancher un autre kit
                 </button>
               </div>
             </motion.div>

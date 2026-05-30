@@ -126,7 +126,7 @@ function buildQuickActions(
     {
       id: "request_scan",
       label: "Demander un scan",
-      status: "OBD-II",
+      status: "boîtier",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <path d="M3 12h4l3-9 4 18 3-9h4" />
@@ -384,8 +384,8 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const vehicle = portal.vehicles[0];
-  const clientName = portal.client?.full_name || "Votre vehicule";
-  const vehicleLabel = `${vehicle?.brand || "Toyota"} ${vehicle?.model || "Prado"}`;
+  const clientName = portal.client?.full_name || "Votre compte";
+  const vehicleLabel = vehicle ? `${vehicle.brand || "Voiture"} ${vehicle.model || "connectée"}` : "Votre voiture";
 
   async function runClientAction(actionId: string, payload: Record<string, unknown>) {
     setBusyAction(actionId);
@@ -480,8 +480,8 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
           </header>
           <DiagnosticDecisionCard intelligence={intelligence} />
           <CockpitHero
-            brand={vehicle?.brand ?? "Toyota"}
-            model={vehicle?.model ?? "Prado"}
+            brand={vehicle?.brand ?? "Voiture"}
+            model={vehicle?.model ?? "connectée"}
             vehicleLabel={vehicleLabel}
             plate={vehicle?.plate}
             mileage={vehicle?.mileage ?? 0}
@@ -551,7 +551,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
         </section>
         <section className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
           <div className="panel rounded-[24px] p-5 md:p-6">
-            <PortalSectionHeader eyebrow="compte personnel" title="Dossier connecté" count="privé" />
+            <PortalSectionHeader eyebrow="Tes infos" title="Mon compte" count="privé" />
 
             <AnimatePresence>
               {message ? (
@@ -608,24 +608,24 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                 disabled={busyAction === "callback" || !vehicle?.id}
                 className="min-h-12 w-full rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {busyAction === "callback" ? "Envoi..." : "Demander un rappel atelier"}
+                {busyAction === "callback" ? "On envoie…" : "Demander à l'atelier de me rappeler"}
               </button>
             </div>
           </div>
 
           <div className="grid gap-4">
             <section className="panel rounded-[26px] p-5">
-              <PortalSectionHeader eyebrow="personnalisation" title="Details de votre voiture" count="modifiable" />
+              <PortalSectionHeader eyebrow="À jour ?" title="Les infos de ta voiture" count="modifiable" />
               <form onSubmit={submitVehicleProfile} className="mt-5 grid gap-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
                     ["Marque", "brand", vehicle?.brand || ""],
-                    ["Modele", "model", vehicle?.model || ""],
+                    ["Modèle", "model", vehicle?.model || ""],
                     ["Plaque", "plate", vehicle?.plate || ""],
-                    ["Kilometrage", "mileage", String(vehicle?.mileage ?? 0)],
-                    ["Assurance", "insuranceDue", vehicle?.insuranceDue || ""],
-                    ["Visite technique", "inspectionDue", vehicle?.inspectionDue || ""],
-                    ["Prochaine vidange", "oilDueKm", String(vehicle?.oilDueKm ?? 0)],
+                    ["Kilométrage", "mileage", String(vehicle?.mileage ?? 0)],
+                    ["Fin de l'assurance", "insuranceDue", vehicle?.insuranceDue || ""],
+                    ["Visite technique avant le", "inspectionDue", vehicle?.inspectionDue || ""],
+                    ["Vidange prévue à (km)", "oilDueKm", String(vehicle?.oilDueKm ?? 0)],
                   ].map(([label, name, value]) => (
                     <label key={name} className="grid gap-2">
                       <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
@@ -645,13 +645,13 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                   disabled={busyAction === "vehicle_profile" || !vehicle?.id}
                   className="min-h-12 rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {busyAction === "vehicle_profile" ? "Mise a jour..." : "Enregistrer mes details"}
+                  {busyAction === "vehicle_profile" ? "On enregistre…" : "Enregistrer mes infos"}
                 </button>
               </form>
             </section>
 
             <section className="panel rounded-[26px] p-5">
-              <PortalSectionHeader eyebrow="priorites conducteur" title="Alertes vehicule" count={portal.alerts.length} />
+              <PortalSectionHeader eyebrow="À traiter en priorité" title="Ce que ta voiture nous a dit" count={portal.alerts.length} />
               <div className="mt-5 grid gap-3">
                 {portal.alerts.length > 0 ? (
                   portal.alerts.map((alert) => (
@@ -686,7 +686,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
 
             <section className="grid gap-4 md:grid-cols-2">
               <div className="panel rounded-[26px] p-5">
-                <PortalSectionHeader eyebrow="devis a valider" title="Decision client" count={portal.estimates.length} />
+                <PortalSectionHeader eyebrow="Devis en attente" title="À toi de décider" count={portal.estimates.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.estimates.map((estimate) => (
                     <article key={estimate.id} className="field-surface rounded-[18px] p-4">
@@ -703,7 +703,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                         disabled={busyAction === `approve_${estimate.id}` || estimate.status === "approuve"}
                         className="mt-4 min-h-10 w-full rounded-[12px] border border-[var(--color-border)] bg-white/[0.04] px-3 text-sm font-semibold transition hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45"
                       >
-                        {estimate.status === "approuve" ? "Devis approuve" : "Approuver le devis"}
+                        {estimate.status === "approuve" ? "Devis accepté" : "Accepter ce devis"}
                       </button>
                     </article>
                   ))}
@@ -711,7 +711,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
               </div>
 
               <div className="panel rounded-[26px] p-5">
-                <PortalSectionHeader eyebrow="paiement" title="Factures" count={portal.invoices.length} />
+                <PortalSectionHeader eyebrow="À régler" title="Mes factures" count={portal.invoices.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.invoices.map((invoice) => {
                     const remaining = Math.max((invoice.total ?? 0) - (invoice.paid ?? 0), 0);
@@ -737,7 +737,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                           disabled={busyAction === `pay_${invoice.id}` || remaining <= 0}
                           className="mt-4 min-h-10 w-full rounded-[12px] bg-[var(--color-accent)] px-3 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45"
                         >
-                          {remaining <= 0 ? "Facture payee" : `Payer ${formatMoney(remaining)}`}
+                          {remaining <= 0 ? "C'est réglé · merci" : `Payer ${formatMoney(remaining)} avec Wave`}
                         </button>
                       </article>
                     );
@@ -748,7 +748,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
 
             <section className="grid gap-4 md:grid-cols-2">
               <div className="panel rounded-[26px] p-5">
-                <PortalSectionHeader eyebrow="boitier IoT" title="Signaux live" count={`${portal.signals.length} flux`} />
+                <PortalSectionHeader eyebrow="Ce que ton boîtier capte" title="Signes vitaux" count={`${portal.signals.length} infos`} />
                 <div className="mt-5 grid gap-3">
                   {portal.signals.map((signal) => (
                     <article key={signal.id} className="field-surface rounded-[18px] p-4">
@@ -771,7 +771,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
               </div>
 
               <div className="panel rounded-[26px] p-5">
-                <PortalSectionHeader eyebrow="coffre vehicule" title="Documents" count={portal.documents.length} />
+                <PortalSectionHeader eyebrow="Coffre numérique" title="Mes papiers" count={portal.documents.length} />
                 <div className="mt-5 grid gap-3">
                   {portal.documents.map((document) => (
                     <article key={document.id} className="field-surface rounded-[18px] p-4">

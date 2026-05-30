@@ -28,6 +28,8 @@ type PhotoCockpitProps = {
   lastSeenAt?: string | null;
   /** Optional override of the photo URL — tests / future per-vehicle photos. */
   photoUrl?: string;
+  /** Public preview mode: hides plate, VIN, mileage and client-like details. */
+  privacyMode?: boolean;
 };
 
 const severityColor: Record<PhotoCockpitSeverity, string> = {
@@ -55,6 +57,7 @@ export function PhotoCockpit({
   alerts = [],
   lastSeenAt,
   photoUrl,
+  privacyMode = false,
 }: PhotoCockpitProps) {
   const reduce = useReducedMotion();
   const [hoverAlert, setHoverAlert] = useState<string | null>(null);
@@ -73,19 +76,19 @@ export function PhotoCockpit({
 
   const lastSeenLabel = useMemo(() => {
     if (!lastSeenAt) return "à l'instant";
-    try {
-      const diff = Math.max(0, Date.now() - new Date(lastSeenAt).getTime());
-      const seconds = Math.round(diff / 1000);
-      if (seconds < 60) return `il y a ${seconds}s`;
-      const minutes = Math.round(seconds / 60);
-      if (minutes < 60) return `il y a ${minutes} min`;
-      const hours = Math.round(minutes / 60);
-      if (hours < 24) return `il y a ${hours}h`;
-      const days = Math.round(hours / 24);
-      return `il y a ${days}j`;
-    } catch {
+    const seenAt = new Date(lastSeenAt).getTime();
+    if (Number.isNaN(seenAt)) {
       return "à l'instant";
     }
+    const diff = Math.max(0, Date.now() - seenAt);
+    const seconds = Math.round(diff / 1000);
+    if (seconds < 60) return `il y a ${seconds}s`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `il y a ${minutes} min`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `il y a ${hours}h`;
+    const days = Math.round(hours / 24);
+    return `il y a ${days}j`;
   }, [lastSeenAt]);
 
   const topAlerts = alerts.slice(0, 3);
@@ -133,7 +136,7 @@ export function PhotoCockpit({
           <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3 py-1.5 backdrop-blur-md">
             <span className="size-1.5 rounded-full bg-[var(--color-accent)] live-dot" />
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/85">
-              kit IoT · {lastSeenLabel}
+              {privacyMode ? "aperçu anonymisé" : `kit IoT · ${lastSeenLabel}`}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -217,17 +220,28 @@ export function PhotoCockpit({
         >
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/65">
-              véhicule connecté
+              {privacyMode ? "simulation publique" : "véhicule connecté"}
             </p>
             <h2 className="mt-1.5 font-display text-3xl font-semibold leading-[0.96] tracking-[-0.04em] md:text-5xl">
               {vehicleLabel}
             </h2>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:flex md:items-end md:gap-4">
-            <StatCell label="plaque" value={plate ?? "—"} mono />
-            <StatCell label="km" value={mileage.toLocaleString("fr-FR")} mono />
-            <StatCell label="VIN" value={vin ? `…${vin.slice(-6)}` : "masqué"} mono />
-          </div>
+          {privacyMode ? (
+            <div className="rounded-[12px] border border-white/12 bg-black/55 px-3 py-2 text-right backdrop-blur-md">
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/55">
+                données privées
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-white">
+                plaque, VIN et km masqués
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2 md:flex md:items-end md:gap-4">
+              <StatCell label="plaque" value={plate ?? "—"} mono />
+              <StatCell label="km" value={mileage.toLocaleString("fr-FR")} mono />
+              <StatCell label="VIN" value={vin ? `…${vin.slice(-6)}` : "masqué"} mono />
+            </div>
+          )}
         </motion.div>
       </div>
 

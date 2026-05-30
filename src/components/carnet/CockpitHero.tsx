@@ -68,21 +68,17 @@ const vitalSevMap: Record<string, VitalStatus> = {
 };
 
 function prettyTime(iso?: string) {
-  if (!iso) return "live";
-  try {
-    return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return iso;
-  }
+  if (!iso || iso === "live" || iso === "—") return "live";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
 function dueETA(due?: string) {
-  if (!due) return undefined;
-  try {
-    return new Date(due).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return due;
-  }
+  if (!due || due === "—") return undefined;
+  const date = new Date(due);
+  if (Number.isNaN(date.getTime())) return due;
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function lastServiceFloor(_mileage: number, nextServiceKm: number) {
@@ -156,7 +152,7 @@ export function CockpitHero({
         vehicle: `${vehicleLabel} · ${plate ?? "—"}`,
         source: signal.metric ?? "Signal",
         severity: sevMap[(signal.status ?? "ok").toLowerCase()] ?? "info",
-        message: `${signal.metric ?? "Métrique"} · ${signal.value ?? "—"}`,
+        message: `${signal.metric ?? "Signal véhicule"} · ${signal.value ?? "—"}`,
       });
     });
     if (entries.length === 0) {
@@ -164,9 +160,9 @@ export function CockpitHero({
         id: "warmup",
         at: "live",
         vehicle: `${vehicleLabel} · ${plate ?? "—"}`,
-        source: "CAN bus",
+        source: "Connexion véhicule",
         severity: "info",
-        message: "Synchronisation initiale en cours. Les flux arrivent.",
+        message: "Lecture du boîtier en cours. Les informations arrivent.",
       });
     }
     return entries;
@@ -220,7 +216,7 @@ export function CockpitHero({
       {/* ── VITALS + FEED ─────────────────────────────────────────── */}
       <div className="grid gap-4 xl:grid-cols-[1.18fr_0.82fr]">
         <VitalGrid metrics={metrics} />
-        <TelemetryFeed entries={feed} rows={4} title="Flux IoT · votre véhicule" />
+        <TelemetryFeed entries={feed} rows={4} title="Lecture boîtier · votre véhicule" />
       </div>
     </div>
   );
@@ -236,8 +232,9 @@ function DueCountdown({
   icon: React.ReactNode;
 }) {
   const due = new Date(dueDate);
-  const diffMs = due.getTime() - Date.now();
-  const days = Math.round(diffMs / 86400000);
+  const validDue = !Number.isNaN(due.getTime());
+  const diffMs = validDue ? due.getTime() - Date.now() : 0;
+  const days = validDue ? Math.round(diffMs / 86400000) : 0;
   const overdue = days < 0;
   const urgent = days >= 0 && days < 30;
   const color = overdue
@@ -262,20 +259,20 @@ function DueCountdown({
           className="font-mono text-[10px] uppercase tracking-[0.14em]"
           style={{ color }}
         >
-          {overdue ? "retard" : urgent ? "bientôt" : "ok"}
+          {!validDue ? "à vérifier" : overdue ? "retard" : urgent ? "bientôt" : "ok"}
         </span>
       </div>
       <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
         {label}
       </p>
       <p className="tabular mt-1 font-display text-2xl font-semibold leading-none tracking-[-0.03em]">
-        {overdue ? `+${Math.abs(days)}` : days}
+        {validDue ? (overdue ? `+${Math.abs(days)}` : days) : "—"}
         <span className="ml-1 font-mono text-[11px] font-normal text-[var(--color-fg-muted)]">
           jours
         </span>
       </p>
       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-fg-subtle)]">
-        échéance · {dueETA(dueDate)}
+        échéance · {dueETA(dueDate) ?? "non renseignée"}
       </p>
     </div>
   );

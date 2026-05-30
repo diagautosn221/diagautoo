@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
+  { href: "#histoire", label: "Histoire" },
   { href: "#pourquoi", label: "Pourquoi" },
-  { href: "#what", label: "Ce qu'on fait" },
-  { href: "#preview", label: "Aperçu" },
-  { href: "#contact", label: "Nous joindre" },
+  { href: "#cas-reel", label: "Cas réel" },
+  { href: "#senegal", label: "Sénégal" },
+  { href: "#teranga", label: "Téranga" },
+  { href: "#contact", label: "On démarre" },
 ];
 
 export function Nav() {

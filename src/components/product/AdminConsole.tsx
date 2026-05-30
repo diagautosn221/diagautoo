@@ -115,13 +115,15 @@ export function AdminConsole({ initialCms }: { initialCms: AdminCmsData }) {
         <section className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
           <div className="premium-shell rounded-[30px] p-5 md:p-6">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              admin plateforme
+              Tour de contrôle DiagAutoSN
             </p>
-            <h1 className="mt-5 max-w-[10ch] text-balance font-display text-5xl font-black leading-[0.88] tracking-[-0.065em] md:text-6xl">
-              CMS et controle operations.
+            <h1 className="mt-5 max-w-[14ch] text-balance font-display text-5xl font-black leading-[0.88] tracking-[-0.065em] md:text-6xl">
+              Pilote tout, sans toucher au code.
             </h1>
             <p className="mt-5 text-sm leading-7 text-[var(--color-fg-muted)]">
-              Cet espace pilote les contenus publics, les services, les roles et la supervision backend sans toucher au code.
+              D'ici tu changes les textes du site, tes offres, tu vois la santé
+              de la plateforme et qui fait quoi. Tout ce qui paraît public part
+              de cet écran.
             </p>
             {message ? (
               <div className="mt-6 rounded-[16px] border border-[var(--color-success)]/35 bg-[var(--color-success)]/10 p-4 text-sm font-semibold text-[var(--color-success)]">
@@ -152,7 +154,7 @@ export function AdminConsole({ initialCms }: { initialCms: AdminCmsData }) {
                   <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
                     catalogue public
                   </p>
-                  <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Services visibles sur le site</h2>
+                  <h2 className="mt-2 text-2xl font-black tracking-[-0.045em]">Ce qu'on propose sur le site</h2>
                 </div>
                 <span className="rounded-[10px] border border-[var(--color-border)] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-accent)]">
                   {cms.services.length} items
@@ -191,7 +193,7 @@ export function AdminConsole({ initialCms }: { initialCms: AdminCmsData }) {
 
             <section className="grid gap-4 lg:grid-cols-2">
               <div className="panel rounded-[26px] p-5">
-                <h2 className="text-xl font-black tracking-[-0.04em]">Utilisateurs et roles</h2>
+                <h2 className="text-xl font-black tracking-[-0.04em]">Qui peut faire quoi</h2>
                 <div className="mt-4 grid gap-2">
                   {cms.users.map((user) => (
                     <article key={user.id} className="field-surface rounded-[16px] p-4">
@@ -205,7 +207,7 @@ export function AdminConsole({ initialCms }: { initialCms: AdminCmsData }) {
                 </div>
               </div>
               <div className="panel rounded-[26px] p-5">
-                <h2 className="text-xl font-black tracking-[-0.04em]">Journal recent</h2>
+                <h2 className="text-xl font-black tracking-[-0.04em]">Ce qui s'est passé dernièrement</h2>
                 <div className="mt-4 grid gap-2">
                   {cms.auditEvents.length > 0 ? (
                     cms.auditEvents.map((event) => (
