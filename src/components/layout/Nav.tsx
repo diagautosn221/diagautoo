@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-  { href: "#vehicle-ai", label: "Vehicle AI" },
-  { href: "#services", label: "Services" },
-  { href: "/atelier", label: "Atelier" },
-  { href: "/carnet", label: "Client" },
-  { href: "/admin", label: "Admin" },
+  { href: "#pourquoi", label: "Pourquoi" },
+  { href: "#what", label: "Ce qu'on fait" },
+  { href: "#preview", label: "Aperçu" },
+  { href: "#contact", label: "Nous joindre" },
 ];
 
 export function Nav() {
@@ -53,7 +52,11 @@ export function Nav() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="rounded-md px-3 py-2 text-sm text-[var(--color-fg-muted)] transition-colors duration-200 hover:bg-white/[0.04] hover:text-[var(--color-fg)]"
+                  className={`rounded-md px-3 py-2 text-sm transition-colors duration-200 ${
+                    scrolled
+                      ? "text-white/68 hover:bg-white/[0.08] hover:text-white"
+                      : "text-[var(--color-fg-muted)] hover:bg-black/[0.04] hover:text-[var(--color-fg)]"
+                  }`}
                 >
                   {link.label}
                 </Link>

@@ -1,7 +1,11 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CockpitHero } from "@/components/carnet/CockpitHero";
+import { QuickActionsDock, type QuickAction } from "@/components/carnet/QuickActionsDock";
+import { MaintenanceTimeline, type TimelineEntry } from "@/components/carnet/MaintenanceTimeline";
+import { useCarnetDashboard } from "@/hooks/useCarnetDashboard";
 
 type PortalVehicle = {
   id?: string;
@@ -76,14 +80,14 @@ type ClientActionResponse = {
   portal: ClientPortalData;
 };
 
-const clientVehiclePhoto = "https://images.pexels.com/photos/4639907/pexels-photo-4639907.jpeg?auto=compress&cs=tinysrgb&w=1200";
-
-const clientQuickControls: Array<[string, string]> = [
-  ["Statut", "En ligne"],
-  ["Position", "Dakar"],
-  ["Rappel", "Atelier"],
-  ["OBD", "Actif"],
-];
+type DriverIntelligence = {
+  tone: "ok" | "watch" | "urgent" | "blocked";
+  verdict: string;
+  headline: string;
+  cause: string;
+  action: string;
+  evidence: string[];
+};
 
 function severityClass(severity?: string) {
   if (severity === "blocked") return "border-[var(--color-danger)]/45 bg-[var(--color-danger)]/12 text-[var(--color-danger)]";
@@ -112,6 +116,253 @@ function PortalSectionHeader({ eyebrow, title, count }: { eyebrow: string; title
   );
 }
 
+function buildQuickActions(
+  runClientAction: (actionId: string, payload: Record<string, unknown>) => Promise<void>,
+  busy: boolean,
+  vehicleId?: string
+): QuickAction[] {
+  void busy;
+  return [
+    {
+      id: "request_scan",
+      label: "Demander un scan",
+      status: "OBD-II",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M3 12h4l3-9 4 18 3-9h4" />
+        </svg>
+      ),
+      onTrigger: () =>
+        runClientAction("request_scan", {
+          action: "request_scan",
+          vehicleId: vehicleId ?? "",
+          reason: "Demande client depuis le carnet",
+        }),
+    },
+    {
+      id: "request_rdv",
+      label: "Prendre rendez-vous",
+      status: "atelier Dakar",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      ),
+      onTrigger: () =>
+        runClientAction("request_rdv", {
+          action: "request_callback",
+          vehicleId: vehicleId ?? "",
+          reason: "Demande de rendez-vous depuis le carnet",
+        }),
+    },
+    {
+      id: "call_atelier",
+      label: "Appeler l'atelier",
+      status: "support 24/7",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+      ),
+      onTrigger: () => {
+        window.location.href = "tel:+221770000000";
+        return Promise.resolve();
+      },
+    },
+    {
+      id: "share_documents",
+      label: "Mes documents",
+      status: "à jour",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6M9 14h6M9 18h6" />
+        </svg>
+      ),
+      onTrigger: () => Promise.resolve(),
+    },
+    {
+      id: "locate",
+      label: "Localiser",
+      status: "GPS atelier",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      ),
+      onTrigger: () => Promise.resolve(),
+    },
+    {
+      id: "history",
+      label: "Historique",
+      status: "interventions",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M3 3v5h5M3 8a9 9 0 1 0 3-6.7" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      ),
+      onTrigger: () => Promise.resolve(),
+    },
+  ];
+}
+
+function buildTimelineEntries(portal: ClientPortalData): TimelineEntry[] {
+  const entries: TimelineEntry[] = [];
+
+  (portal.alerts ?? []).forEach((alert, index) => {
+    const sev =
+      alert.severity === "blocked"
+        ? "blocked"
+        : alert.severity === "urgent"
+        ? "urgent"
+        : alert.severity === "watch"
+        ? "watch"
+        : "ok";
+    entries.push({
+      id: `alert-${alert.id ?? alert.type ?? alert.label ?? index}`,
+      date: alert.due ?? "à venir",
+      label: alert.label ?? "Alerte enregistrée",
+      detail: alert.source ? `Source · ${alert.source}` : undefined,
+      state: "upcoming",
+      severity: sev,
+    });
+  });
+
+  (portal.estimates ?? []).forEach((est, index) => {
+    entries.push({
+      id: `est-${est.id ?? est.operation ?? index}`,
+      date: est.status ?? "—",
+      label: est.operation ?? "Devis atelier",
+      detail: undefined,
+      costFcfa: est.total,
+      state: "past",
+      severity: "ok",
+    });
+  });
+
+  (portal.invoices ?? []).forEach((inv, index) => {
+    entries.push({
+      id: `inv-${inv.id ?? index}`,
+      date: inv.dueAt ?? "—",
+      label: `Facture · ${inv.status ?? "—"}`,
+      detail: `Reglé ${(inv.paid ?? 0).toLocaleString("fr-FR")} / ${(inv.total ?? 0).toLocaleString("fr-FR")} F CFA`,
+      costFcfa: inv.total,
+      state: inv.status === "regle" ? "past" : "upcoming",
+      severity: inv.status === "regle" ? "ok" : "watch",
+    });
+  });
+
+  if (entries.length === 0) {
+    entries.push({
+      id: "warmup",
+      date: "live",
+      label: "Carnet ouvert — premières données en cours d'ingestion",
+      state: "today",
+      severity: "ok",
+    });
+  }
+
+  return entries.slice(0, 10);
+}
+
+function buildDriverIntelligence({
+  healthScore,
+  alerts,
+  signals,
+  deviceLastSeen,
+}: {
+  healthScore: number;
+  alerts: PortalAlert[];
+  signals: PortalSignal[];
+  deviceLastSeen?: string | null;
+}): DriverIntelligence {
+  const rank: Record<DriverIntelligence["tone"], number> = { ok: 0, watch: 1, urgent: 2, blocked: 3 };
+  const normalise = (value?: string): DriverIntelligence["tone"] => {
+    if (value === "blocked") return "blocked";
+    if (value === "urgent") return "urgent";
+    if (value === "watch") return "watch";
+    return "ok";
+  };
+
+  const alert = [...alerts].sort((a, b) => rank[normalise(b.severity)] - rank[normalise(a.severity)])[0];
+  const signal = [...signals].sort((a, b) => rank[normalise(b.status)] - rank[normalise(a.status)])[0];
+  const alertTone = normalise(alert?.severity);
+  const signalTone = normalise(signal?.status);
+  let tone: DriverIntelligence["tone"] =
+    rank[alertTone] >= rank[signalTone] ? alertTone : signalTone;
+
+  if (healthScore < 58) tone = "blocked";
+  else if (healthScore < 70 && rank[tone] < rank.urgent) tone = "urgent";
+  else if (healthScore < 82 && rank[tone] < rank.watch) tone = "watch";
+
+  const top = rank[alertTone] >= rank[signalTone] ? alert : undefined;
+  const cause =
+    top?.source ||
+    top?.label ||
+    (signal ? `${signal.metric ?? "Signal IoT"} · ${signal.value ?? "valeur instable"}` : "Aucune anomalie critique");
+
+  if (tone === "blocked") {
+    return {
+      tone,
+      verdict: "Stopper et appeler",
+      headline: "Le système recommande de ne pas continuer sans contrôle atelier.",
+      cause,
+      action: "Contactez DiagAutoSN. Un technicien doit valider le véhicule avant reprise.",
+      evidence: [
+        `${alerts.length} alerte(s) active(s)`,
+        `Score santé ${healthScore}/100`,
+        deviceLastSeen ? `Kit vu à ${new Date(deviceLastSeen).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : "Kit IoT en attente",
+      ],
+    };
+  }
+
+  if (tone === "urgent") {
+    return {
+      tone,
+      verdict: "Atelier recommandé",
+      headline: "Vous pouvez vous déplacer prudemment, mais le véhicule doit être contrôlé.",
+      cause,
+      action: "Demandez un scan atelier ou prenez rendez-vous dans la journée.",
+      evidence: [
+        `${alerts.length} alerte(s) à traiter`,
+        `Score santé ${healthScore}/100`,
+        `${signals.length} flux IoT analysé(s)`,
+      ],
+    };
+  }
+
+  if (tone === "watch") {
+    return {
+      tone,
+      verdict: "À surveiller",
+      headline: "Le véhicule roule, mais un point mérite votre attention.",
+      cause,
+      action: "Gardez le suivi actif et planifiez un contrôle si le signal revient.",
+      evidence: [
+        `${alerts.length} rappel(s) ou alerte(s)`,
+        `Score santé ${healthScore}/100`,
+        "Surveillance continue active",
+      ],
+    };
+  }
+
+  return {
+    tone,
+    verdict: "Vous pouvez rouler",
+    headline: "Aucun signal critique détecté sur le dernier cycle IoT.",
+    cause: "Systèmes principaux nominalement stables",
+    action: "Continuez le suivi. Le carnet vous prévient dès qu'un seuil change.",
+    evidence: [
+      "Alerte critique: 0",
+      `Score santé ${healthScore}/100`,
+      `${signals.length} flux IoT synchronisé(s)`,
+    ],
+  };
+}
+
 function MiniSignal({ status }: { status?: string }) {
   const level = status === "blocked" ? 5 : status === "urgent" ? 4 : status === "watch" ? 3 : 2;
   return (
@@ -127,7 +378,7 @@ function MiniSignal({ status }: { status?: string }) {
   );
 }
 
-export function ClientPortal({ clientId, initialPortal }: { clientId: string; initialPortal: ClientPortalData }) {
+export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalData }) {
   const [portal, setPortal] = useState<ClientPortalData>(initialPortal);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -140,7 +391,7 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
     setBusyAction(actionId);
     setError(null);
     try {
-      const response = await fetch(`/api/client/portal?clientId=${encodeURIComponent(clientId)}`, {
+      const response = await fetch("/api/client/portal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -173,54 +424,134 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
     });
   }
 
+  const alertCount = portal.alerts?.length ?? 0;
+
+  // Live sync — polls /api/carnet/dashboard every 10s. The first vehicle
+  // we own is the one displayed in the cockpit (matches the legacy logic
+  // that reads portal.vehicles[0]).
+  const { dashboards, lastSyncedAt, isFetching } = useCarnetDashboard({
+    vehicleId: vehicle?.id,
+  });
+  const liveDashboard = dashboards[0];
+  const liveSignals = liveDashboard?.signals ?? portal.signals;
+  const liveAlerts = liveDashboard?.alerts ?? portal.alerts;
+  const lastServiceKm = liveDashboard?.vehicle.lastServiceKm;
+  const deviceSerial = liveDashboard?.device.serial ?? null;
+  const deviceLastSeen = liveDashboard?.device.lastSeen ?? null;
+  const intelligence = useMemo(
+    () =>
+      buildDriverIntelligence({
+        healthScore: vehicle?.healthScore ?? 78,
+        alerts: liveAlerts,
+        signals: liveSignals,
+        deviceLastSeen,
+      }),
+    [vehicle?.healthScore, liveAlerts, liveSignals, deviceLastSeen]
+  );
+
+  const syncLabel = lastSyncedAt
+    ? `synchro · ${Math.max(0, Math.round((Date.now() - lastSyncedAt.getTime()) / 1000))}s`
+    : isFetching
+    ? "synchro · …"
+    : "synchro · attente";
+
   return (
     <main className="min-h-[100dvh] overflow-hidden py-8">
       <div className="container-tight">
-        <section className="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
-          <div className="relative overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-white p-3 shadow-[0_24px_90px_color-mix(in_srgb,var(--color-fg)_10%,transparent)] md:p-4">
-            <div className="relative overflow-hidden rounded-[26px] bg-[var(--color-fg)] text-white">
-              <img src={clientVehiclePhoto} alt={vehicleLabel} className="h-64 w-full object-cover" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-fg)] to-transparent p-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/62">carnet connecte</p>
-                <h1 className="mt-2 max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.9] tracking-[-0.065em] md:text-5xl">
-                  {vehicleLabel}
-                </h1>
-                <p className="mt-3 text-sm leading-6 text-white/70">
-                  {clientName} suit l'etat du vehicule, les documents, les devis et les paiements.
-                </p>
-              </div>
+        <section className="mb-6">
+          <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+                Dashboard temps réel · DiagAutoSN Carnet
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-4xl">
+                Bonjour {clientName.split(" ")[0]}.
+                <span className="ml-2 text-[var(--color-fg-muted)]">Voici l'état de votre {vehicleLabel}.</span>
+              </h2>
             </div>
+            <span className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-muted)]">
+              <span
+                className={`size-1.5 rounded-full ${
+                  isFetching ? "bg-[var(--color-accent)] live-dot" : "bg-[var(--color-success)]"
+                }`}
+              />
+              {syncLabel}
+            </span>
+          </header>
+          <DiagnosticDecisionCard intelligence={intelligence} />
+          <CockpitHero
+            brand={vehicle?.brand ?? "Toyota"}
+            model={vehicle?.model ?? "Prado"}
+            vehicleLabel={vehicleLabel}
+            plate={vehicle?.plate}
+            mileage={vehicle?.mileage ?? 0}
+            healthScore={vehicle?.healthScore ?? 78}
+            oilDueKm={vehicle?.oilDueKm}
+            lastServiceKm={lastServiceKm}
+            insuranceDue={vehicle?.insuranceDue}
+            inspectionDue={vehicle?.inspectionDue}
+            signals={liveSignals}
+            alerts={liveAlerts}
+            deviceSerial={deviceSerial}
+            lastSeen={deviceLastSeen}
+          />
+        </section>
 
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {clientQuickControls.map(([label, value]) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="grid min-h-[74px] place-items-center rounded-[18px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-2 text-center transition hover:border-[var(--color-accent)] active:scale-[0.98]"
-                >
-                  <span className="grid size-7 place-items-center rounded-full bg-[var(--color-accent)] text-[11px] font-black text-white">
-                    {label.slice(0, 1)}
-                  </span>
-                  <span className="text-[10px] font-black leading-3">{label}</span>
-                  <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-[var(--color-fg-subtle)]">{value}</span>
-                </button>
-              ))}
-            </div>
+        <section className="mb-6">
+          <QuickActionsDock
+            title="Actions rapides · carnet"
+            actions={buildQuickActions(runClientAction, busyAction !== null, vehicle?.id)}
+          />
+        </section>
 
-            <div className="mt-4 grid gap-4">
-              <div className="grid grid-cols-3 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)]">
-                {[
-                  ["score", vehicle?.healthScore ?? 0],
-                  ["plaque", vehicle?.plate || "DK 4582 AA"],
-                  ["km", (vehicle?.mileage ?? 0).toLocaleString("fr-FR")],
-                ].map(([label, value]) => (
-                  <div key={label} className="bg-[var(--color-fg)] p-3">
-                    <div className="tabular font-mono text-sm font-black text-white">{value}</div>
-                    <div className="mt-2 font-mono text-[8px] uppercase tracking-[0.12em] text-white/50">{label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <section className="mb-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+          <MaintenanceTimeline
+            entries={buildTimelineEntries(portal)}
+            title="Carnet de bord · interventions & alertes"
+          />
+          <div className="panel rounded-[20px] p-5 md:p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+              Documents · accès rapide
+            </p>
+            <h3 className="mt-1.5 font-display text-lg font-semibold tracking-[-0.02em]">
+              Vos pièces véhicule
+            </h3>
+            <ul className="mt-4 space-y-2">
+              {(portal.documents ?? []).slice(0, 5).map((doc) => {
+                const expSoon =
+                  !!doc.expiresAt && new Date(doc.expiresAt).getTime() - Date.now() < 60 * 86400000;
+                return (
+                  <li
+                    key={doc.id}
+                    className="hairline-card flex items-start justify-between gap-3 rounded-[12px] p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[var(--color-fg)]">{doc.label}</p>
+                      <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                        {doc.status?.replace(/_/g, " ")}
+                        {doc.expiresAt ? ` · exp ${doc.expiresAt}` : ""}
+                      </p>
+                    </div>
+                    <span
+                      className="font-mono text-[10px] uppercase tracking-[0.14em]"
+                      style={{
+                        color: expSoon ? "var(--color-warn)" : "var(--color-success)",
+                      }}
+                    >
+                      {expSoon ? "bientôt" : "ok"}
+                    </span>
+                  </li>
+                );
+              })}
+              {(portal.documents ?? []).length === 0 && (
+                <li className="text-sm text-[var(--color-fg-muted)]">Aucun document partagé pour le moment.</li>
+              )}
+            </ul>
+          </div>
+        </section>
+        <section className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+          <div className="panel rounded-[24px] p-5 md:p-6">
+            <PortalSectionHeader eyebrow="compte personnel" title="Dossier connecté" count="privé" />
 
             <AnimatePresence>
               {message ? (
@@ -240,35 +571,46 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
               </div>
             ) : null}
 
-            <div className="relative mt-6 grid gap-3 text-sm text-[var(--color-fg-muted)]">
-              <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-                <span>Assurance</span>
-                <span className="font-mono text-[var(--color-fg)]">{vehicle?.insuranceDue || "a confirmer"}</span>
+            <div className="mt-5 grid gap-3">
+              <div className="rounded-[16px] border border-[var(--color-border)] bg-white p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                  Propriétaire
+                </p>
+                <p className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[var(--color-fg)]">{clientName}</p>
+                <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+                  {portal.client?.phone ?? "Téléphone à compléter"}
+                  {portal.client?.city ? ` · ${portal.client.city}` : ""}
+                </p>
               </div>
-              <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-                <span>Visite technique</span>
-                <span className="font-mono text-[var(--color-fg)]">{vehicle?.inspectionDue || "a confirmer"}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-                <span>Prochaine vidange</span>
-                <span className="font-mono text-[var(--color-fg)]">{(vehicle?.oilDueKm ?? 0).toLocaleString("fr-FR")} km</span>
-              </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                runClientAction("callback", {
-                  action: "request_callback",
-                  vehicleId: vehicle?.id,
-                  reason: "Client demande un rappel depuis le carnet connecte",
-                })
-              }
-              disabled={busyAction === "callback" || !vehicle?.id}
-              className="mt-6 min-h-12 w-full rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {busyAction === "callback" ? "Envoi..." : "Demander un rappel atelier"}
-            </button>
+              {[
+                ["Assurance", vehicle?.insuranceDue || "à confirmer"],
+                ["Visite technique", vehicle?.inspectionDue || "à confirmer"],
+                ["Prochaine vidange", `${(vehicle?.oilDueKm ?? 0).toLocaleString("fr-FR")} km`],
+              ].map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between gap-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-3">
+                  <span className="text-sm font-semibold text-[var(--color-fg)]">{label}</span>
+                  <span className="tabular text-right font-mono text-xs uppercase tracking-[0.12em] text-[var(--color-fg-muted)]">
+                    {value}
+                  </span>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() =>
+                  runClientAction("callback", {
+                    action: "request_callback",
+                    vehicleId: vehicle?.id,
+                    reason: "Client demande un rappel depuis le carnet connecté",
+                  })
+                }
+                disabled={busyAction === "callback" || !vehicle?.id}
+                className="min-h-12 w-full rounded-[14px] bg-[var(--color-accent)] px-4 font-black text-[var(--color-accent-ink)] shadow-[0_18px_48px_rgba(223,68,56,0.18)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {busyAction === "callback" ? "Envoi..." : "Demander un rappel atelier"}
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-4">
@@ -451,5 +793,74 @@ export function ClientPortal({ clientId, initialPortal }: { clientId: string; in
         </section>
       </div>
     </main>
+  );
+}
+
+function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntelligence }) {
+  const colorByTone: Record<DriverIntelligence["tone"], string> = {
+    ok: "var(--color-success)",
+    watch: "var(--color-warn)",
+    urgent: "var(--color-accent)",
+    blocked: "var(--color-danger)",
+  };
+  const color = colorByTone[intelligence.tone];
+
+  return (
+    <section
+      className="mb-4 overflow-hidden rounded-[20px] border bg-white p-4 shadow-[0_18px_60px_color-mix(in_srgb,var(--color-fg)_8%,transparent)] md:p-5"
+      style={{ borderColor: `color-mix(in srgb, ${color} 34%, var(--color-border))` }}
+      aria-label="Diagnostic intelligent conducteur"
+    >
+      <div className="grid gap-4 md:grid-cols-[0.84fr_1.16fr] md:items-center">
+        <div className="flex items-center gap-3">
+          <span
+            className="grid size-12 shrink-0 place-items-center rounded-[14px] border"
+            style={{
+              borderColor: `color-mix(in srgb, ${color} 35%, transparent)`,
+              background: `color-mix(in srgb, ${color} 10%, transparent)`,
+              color,
+            }}
+          >
+            <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+              <path d="M12 3l8 4v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V7l8-4z" />
+              <path d="M9 12l2 2 4-5" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+              Diagnostic intelligent · décision conducteur
+            </p>
+            <h3 className="mt-1 font-display text-2xl font-semibold tracking-[-0.035em]" style={{ color }}>
+              {intelligence.verdict}
+            </h3>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <p className="text-sm font-semibold leading-6 text-[var(--color-fg)]">{intelligence.headline}</p>
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                Cause probable
+              </p>
+              <p className="mt-1 text-sm leading-6 text-[var(--color-fg-muted)]">{intelligence.cause}</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 sm:justify-end">
+              {intelligence.evidence.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.11em] text-[var(--color-fg-muted)]"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+          <p className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm font-semibold text-[var(--color-fg)]">
+            {intelligence.action}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }

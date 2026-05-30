@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import type { GarageAlertSeverity, GarageAlertType } from "@/lib/data/garage";
+import { generateIssuedPassword, hashPassword } from "@/lib/auth/password";
 
 type SqlValue = string | number | null;
 
@@ -74,6 +75,7 @@ export type ClientPortalActionPayload =
   | { action: "approve_estimate"; estimateId?: string }
   | { action: "record_payment"; invoiceId?: string; amount?: number; method?: string }
   | { action: "request_callback"; vehicleId?: string; reason?: string }
+  | { action: "request_scan"; vehicleId?: string; reason?: string }
   | {
       action: "update_vehicle_profile";
       vehicleId?: string;
@@ -119,10 +121,98 @@ function getDatabase() {
     cachedDb.exec("PRAGMA foreign_keys = ON;");
     cachedDb.exec("PRAGMA journal_mode = WAL;");
     migrate(cachedDb);
+    migrateAddLastServiceKm(cachedDb);
+    migrateAddPasswordHash(cachedDb);
     seed(cachedDb);
+    backfillUserPasswords(cachedDb);
   }
 
   return cachedDb;
+}
+
+/**
+ * Idempotent additive migration: adds `last_service_km` to vehicles when
+ * absent, and backfills existing rows with a sensible default so the
+ * RangeBar in the cockpit is honest from the first render.
+ *
+ * Pattern: introspect via PRAGMA table_info before adding; SQLite has no
+ * "ADD COLUMN IF NOT EXISTS".
+ */
+/**
+ * Idempotent migration: adds password_hash column to users. The column is
+ * nullable on purpose so existing rows can be backfilled in a second pass
+ * without breaking startup if hashing is slow.
+ */
+function migrateAddPasswordHash(db: Database) {
+  type ColInfo = { name: string };
+  const cols = db
+    .prepare<ColInfo>("PRAGMA table_info(users)")
+    .all() as ColInfo[];
+  if (!cols.some((c) => c.name === "password_hash")) {
+    db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+  }
+}
+
+/**
+ * Backfill: any active user without a password_hash gets the demo password
+ * hashed in place. This lets the existing /api/auth/login flow keep working
+ * after the migration, without leaving plain-text credentials anywhere.
+ */
+function backfillUserPasswords(db: Database) {
+  type Row = { id: string };
+  const rows = db
+    .prepare<Row>("SELECT id FROM users WHERE password_hash IS NULL OR password_hash = ''")
+    .all() as Row[];
+  if (rows.length === 0) return;
+  const demoPassword = process.env.DEMO_PASSWORD || "diagauto";
+  const update = db.prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+  for (const row of rows) {
+    update.run(hashPassword(demoPassword), row.id);
+  }
+}
+
+function migrateAddLastServiceKm(db: Database) {
+  type ColInfo = { name: string };
+  const cols = db
+    .prepare<ColInfo>("PRAGMA table_info(vehicles)")
+    .all() as ColInfo[];
+  const hasColumn = cols.some((c) => c.name === "last_service_km");
+  if (!hasColumn) {
+    db.exec("ALTER TABLE vehicles ADD COLUMN last_service_km INTEGER NOT NULL DEFAULT 0");
+  }
+  db.exec(
+    "UPDATE vehicles SET last_service_km = MAX(0, oil_due_km - 4000) WHERE last_service_km = 0 OR last_service_km IS NULL"
+  );
+}
+
+type AuthLookupRow = {
+  id: string;
+  email: string;
+  full_name: string;
+  client_id: string | null;
+  garage_id: string | null;
+  scope: string;
+  status: string;
+  password_hash: string | null;
+};
+
+/**
+ * Lookup an active user by email, returning everything the session needs
+ * plus the stored password_hash for verifyPassword to consume. Returns
+ * null when no active match exists.
+ */
+export function findUserByEmailFromDb(email: string) {
+  const db = getDatabase();
+  const row = db
+    .prepare<AuthLookupRow>(
+      `SELECT u.id, u.email, u.full_name, u.client_id, u.garage_id, r.scope, u.status, u.password_hash
+       FROM users u
+       INNER JOIN roles r ON r.id = u.role_id
+       WHERE LOWER(u.email) = LOWER(?) AND u.status = 'active'
+       LIMIT 1`
+    )
+    .get(email.trim());
+  return row ?? null;
 }
 
 export function getBackendHealthFromDb() {
@@ -1250,9 +1340,71 @@ export function runClientPortalActionInDb(clientId = "c-001", payload: ClientPor
       null
     );
 
+    auditEvent(db, `client:${clientId}`, "request_callback", "notification", notificationId, "Rappel atelier demande depuis le carnet");
+
     return {
       message: "Demande de rappel envoyee au garage",
       recordId: notificationId,
+      portal: getClientPortalFromDb(clientId),
+    };
+  }
+
+  if (payload.action === "request_scan") {
+    const vehicleId = safeText(payload.vehicleId, "");
+    const vehicle = db
+      .prepare<{ id: string }>("SELECT id FROM vehicles WHERE id = ? AND client_id = ? LIMIT 1")
+      .get(vehicleId, clientId);
+    if (!vehicle) throw new Error("vehicle forbidden");
+
+    // 1. Alert visible to the atelier in the live feed.
+    const alertId = slugId("alert");
+    const dueIso = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      "INSERT INTO alerts (id, vehicle_id, type, label, due, severity, source) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run(
+      alertId,
+      vehicle.id,
+      "scan_request",
+      safeText(payload.reason, "Demande de scan OBD-II"),
+      dueIso,
+      "watch",
+      "Client"
+    );
+
+    // 2. Pre-planned work order so the dispatcher sees it on the board.
+    const workOrderId = slugId("wo");
+    const slotTime = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      "INSERT INTO work_orders (id, vehicle_id, time, operation, status, amount) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(
+      workOrderId,
+      vehicle.id,
+      slotTime,
+      "Diagnostic OBD-II (demande client)",
+      "planifie",
+      0
+    );
+
+    // 3. Notification for traceability.
+    const notificationId = slugId("not");
+    db.prepare(
+      "INSERT INTO notifications (id, client_id, vehicle_id, channel, template, status, scheduled_for, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(
+      notificationId,
+      clientId,
+      vehicle.id,
+      "whatsapp",
+      "Confirmation de creneau diagnostic",
+      "pret",
+      nowIso,
+      null
+    );
+
+    auditEvent(db, `client:${clientId}`, "request_scan", "alert", alertId, "Diagnostic OBD-II demande depuis le carnet");
+
+    return {
+      message: "Demande de scan envoyee. L'atelier vous recontacte pour confirmer le creneau.",
+      recordId: alertId,
       portal: getClientPortalFromDb(clientId),
     };
   }
@@ -1434,4 +1586,586 @@ export function getClientPortalFromDb(clientId = "c-001") {
   `).all(clientId);
 
   return { client, vehicles, alerts, signals, documents, estimates, invoices };
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * CARNET DASHBOARD — full per-vehicle telemetry view consumed by the
+ * Tesla-style cockpit. Returns a shape that maps 1:1 to the carnet
+ * components: vehicle header, vitals grid, schematic hotspots, range bar,
+ * maintenance timeline, telemetry feed.
+ * ──────────────────────────────────────────────────────────────────── */
+
+type DashboardVehicleRow = {
+  id: string;
+  brand: string;
+  model: string;
+  plate: string;
+  vin: string;
+  mileage: number;
+  health_score: number;
+  insurance_due: string;
+  inspection_due: string;
+  oil_due_km: number;
+  last_service_km: number;
+};
+
+type DashboardSignalRow = {
+  id: string;
+  metric: string;
+  value: string;
+  status: "ok" | "watch" | "urgent" | "blocked";
+  updated_at: string;
+  device_serial: string | null;
+};
+
+type DashboardAlertRow = {
+  id: string;
+  type: string;
+  label: string;
+  severity: "ok" | "watch" | "urgent" | "blocked";
+  due: string;
+  source: string;
+};
+
+type DashboardWorkOrderRow = {
+  id: string;
+  operation: string;
+  status: string;
+  amount: number;
+  time: string;
+  created_at: string;
+};
+
+type DashboardDiagnosticRow = {
+  id: string;
+  code: string;
+  severity: string;
+  status: string;
+  next_action: string;
+  created_at: string;
+};
+
+type DashboardDeviceRow = {
+  id: string;
+  serial: string;
+  status: string;
+  installed_at: string;
+  last_seen: string;
+};
+
+type DashboardDocumentRow = {
+  id: string;
+  type: string;
+  label: string;
+  status: string;
+  expires_at: string | null;
+};
+
+export type CarnetVehicleDashboard = {
+  vehicle: {
+    id: string;
+    brand: string;
+    model: string;
+    plate: string;
+    vin: string;
+    mileage: number;
+    healthScore: number;
+    insuranceDue: string;
+    inspectionDue: string;
+    oilDueKm: number;
+    lastServiceKm: number;
+  };
+  device: {
+    serial: string | null;
+    status: string | null;
+    lastSeen: string | null;
+    installedAt: string | null;
+  };
+  signals: Array<{
+    id: string;
+    metric: string;
+    value: string;
+    status: "ok" | "watch" | "urgent" | "blocked";
+    updatedAt: string;
+  }>;
+  alerts: Array<{
+    id: string;
+    type: string;
+    label: string;
+    severity: "ok" | "watch" | "urgent" | "blocked";
+    due: string;
+    source: string;
+  }>;
+  workOrders: Array<{
+    id: string;
+    operation: string;
+    status: string;
+    amount: number;
+    time: string;
+    createdAt: string;
+  }>;
+  diagnostics: Array<{
+    id: string;
+    code: string;
+    severity: string;
+    status: string;
+    nextAction: string;
+    createdAt: string;
+  }>;
+  documents: Array<{
+    id: string;
+    type: string;
+    label: string;
+    status: string;
+    expiresAt: string | null;
+  }>;
+};
+
+export function getCarnetDashboardForVehicleFromDb(vehicleId: string): CarnetVehicleDashboard | null {
+  const db = getDatabase();
+
+  const vehicle = db
+    .prepare<DashboardVehicleRow>(
+      `SELECT id, brand, model, plate, vin, mileage, health_score, insurance_due, inspection_due, oil_due_km, last_service_km
+       FROM vehicles WHERE id = ?`
+    )
+    .get(vehicleId);
+
+  if (!vehicle) return null;
+
+  const device = db
+    .prepare<DashboardDeviceRow>(
+      `SELECT id, serial, status, installed_at, last_seen FROM iot_devices WHERE vehicle_id = ? ORDER BY installed_at DESC LIMIT 1`
+    )
+    .get(vehicleId);
+
+  const signals = db
+    .prepare<DashboardSignalRow>(
+      `SELECT s.id, s.metric, s.value, s.status, s.updated_at, d.serial AS device_serial
+       FROM telemetry_signals s
+       LEFT JOIN iot_devices d ON d.id = s.device_id
+       WHERE s.vehicle_id = ?
+       ORDER BY s.updated_at DESC
+       LIMIT 24`
+    )
+    .all(vehicleId);
+
+  const alerts = db
+    .prepare<DashboardAlertRow>(
+      `SELECT id, type, label, severity, due, source
+       FROM alerts WHERE vehicle_id = ? AND resolved_at IS NULL
+       ORDER BY due ASC`
+    )
+    .all(vehicleId);
+
+  const workOrders = db
+    .prepare<DashboardWorkOrderRow>(
+      `SELECT id, operation, status, amount, time, created_at
+       FROM work_orders WHERE vehicle_id = ?
+       ORDER BY created_at DESC
+       LIMIT 24`
+    )
+    .all(vehicleId);
+
+  const diagnostics = db
+    .prepare<DashboardDiagnosticRow>(
+      `SELECT id, code, severity, status, next_action, created_at
+       FROM diagnostics WHERE vehicle_id = ?
+       ORDER BY created_at DESC
+       LIMIT 24`
+    )
+    .all(vehicleId);
+
+  const documents = db
+    .prepare<DashboardDocumentRow>(
+      `SELECT id, type, label, status, expires_at FROM vehicle_documents WHERE vehicle_id = ?`
+    )
+    .all(vehicleId);
+
+  return {
+    vehicle: {
+      id: vehicle.id,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      plate: vehicle.plate,
+      vin: vehicle.vin,
+      mileage: vehicle.mileage,
+      healthScore: vehicle.health_score,
+      insuranceDue: vehicle.insurance_due,
+      inspectionDue: vehicle.inspection_due,
+      oilDueKm: vehicle.oil_due_km,
+      lastServiceKm: vehicle.last_service_km,
+    },
+    device: {
+      serial: device?.serial ?? null,
+      status: device?.status ?? null,
+      lastSeen: device?.last_seen ?? null,
+      installedAt: device?.installed_at ?? null,
+    },
+    signals: signals.map((s) => ({
+      id: s.id,
+      metric: s.metric,
+      value: s.value,
+      status: s.status,
+      updatedAt: s.updated_at,
+    })),
+    alerts,
+    workOrders: workOrders.map((w) => ({
+      id: w.id,
+      operation: w.operation,
+      status: w.status,
+      amount: w.amount,
+      time: w.time,
+      createdAt: w.created_at,
+    })),
+    diagnostics: diagnostics.map((d) => ({
+      id: d.id,
+      code: d.code,
+      severity: d.severity,
+      status: d.status,
+      nextAction: d.next_action,
+      createdAt: d.created_at,
+    })),
+    documents: documents.map((d) => ({
+      id: d.id,
+      type: d.type,
+      label: d.label,
+      status: d.status,
+      expiresAt: d.expires_at,
+    })),
+  };
+}
+
+export function getCarnetDashboardsForClientFromDb(clientId: string): CarnetVehicleDashboard[] {
+  const db = getDatabase();
+  const rows = db
+    .prepare<{ id: string }>(`SELECT id FROM vehicles WHERE client_id = ? ORDER BY id`)
+    .all(clientId);
+  return rows
+    .map((row) => getCarnetDashboardForVehicleFromDb(row.id))
+    .filter((d): d is CarnetVehicleDashboard => d !== null);
+}
+
+export type AtelierClientView = {
+  client: {
+    id: string;
+    fullName: string;
+    email: string | null;
+    phone: string | null;
+    city: string | null;
+    createdAt: string | null;
+  };
+  vehicles: CarnetVehicleDashboard[];
+};
+
+/**
+ * Atelier-side: pull a single client with every vehicle + cockpit data.
+ * Used by /atelier/clients/[clientId] to render the same cockpit the
+ * client sees, plus open alerts the mechanic can resolve in place.
+ */
+export function getAtelierClientViewFromDb(clientId: string): AtelierClientView | null {
+  const db = getDatabase();
+  const client = db
+    .prepare<{
+      id: string;
+      full_name: string;
+      email: string | null;
+      phone: string | null;
+      city: string | null;
+      created_at: string | null;
+    }>(`SELECT id, full_name, email, phone, city, created_at FROM clients WHERE id = ?`)
+    .get(clientId);
+  if (!client) return null;
+  return {
+    client: {
+      id: client.id,
+      fullName: client.full_name,
+      email: client.email,
+      phone: client.phone,
+      city: client.city,
+      createdAt: client.created_at,
+    },
+    vehicles: getCarnetDashboardsForClientFromDb(clientId),
+  };
+}
+
+/**
+ * Atelier-side: list of clients with quick counters for the directory page.
+ */
+export function getAtelierClientsListFromDb() {
+  const db = getDatabase();
+  return db
+    .prepare<{
+      id: string;
+      fullName: string;
+      city: string | null;
+      phone: string | null;
+      vehicles: number;
+      openAlerts: number;
+      avgHealth: number;
+    }>(
+      `SELECT c.id,
+              c.full_name AS fullName,
+              c.city,
+              c.phone,
+              (SELECT COUNT(*) FROM vehicles v WHERE v.client_id = c.id) AS vehicles,
+              (SELECT COUNT(*) FROM alerts a
+                 JOIN vehicles v ON v.id = a.vehicle_id
+                 WHERE v.client_id = c.id AND a.resolved_at IS NULL) AS openAlerts,
+              COALESCE((SELECT ROUND(AVG(v.health_score)) FROM vehicles v WHERE v.client_id = c.id), 0) AS avgHealth
+         FROM clients c
+         ORDER BY c.full_name`
+    )
+    .all();
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * INSTALLATION FLOW — atelier installs the IoT kit on a vehicle and
+ * provisions the matching client account. This is the only legitimate
+ * onboarding path: the public site never creates accounts.
+ * ──────────────────────────────────────────────────────────────────── */
+
+export type InstallationPayload = {
+  /** Existing client id, or null if creating a new one. */
+  clientId?: string | null;
+  newClient?: {
+    fullName: string;
+    email: string;
+    phone: string;
+    city: string;
+  };
+  /** Existing vehicle id, or null if creating a new one. */
+  vehicleId?: string | null;
+  newVehicle?: {
+    brand: string;
+    model: string;
+    plate: string;
+    vin: string;
+    mileage: number;
+  };
+  dongleSerial: string;
+  technicianNote?: string;
+  /** Identifier of the person performing the installation (audit only). */
+  technicianId?: string;
+};
+
+export type InstallationResult = {
+  client: { id: string; fullName: string };
+  vehicle: { id: string; brand: string; model: string; plate: string };
+  device: { id: string; serial: string };
+  user: {
+    id: string;
+    email: string;
+    /** Plain-text password — RETURNED ONCE, never stored. The atelier must
+     * communicate it to the client (printed receipt or WhatsApp). */
+    issuedPassword: string;
+  };
+};
+
+function trimText(value: string | undefined, fallback: string) {
+  const v = (value ?? "").trim();
+  return v.length > 0 ? v : fallback;
+}
+
+function generateEmailForClient(fullName: string): string {
+  const slug = fullName
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/(^\.|\.$)/g, "");
+  const suffix = randomSuffix(3);
+  return `${slug || "client"}.${suffix}@diagautosn.local`;
+}
+
+function randomSuffix(len: number): string {
+  const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return out;
+}
+
+export function createInstallationInDb(payload: InstallationPayload): InstallationResult {
+  const db = getDatabase();
+  const nowIso = new Date().toISOString();
+  const technician = payload.technicianId ?? "atelier";
+
+  if (!payload.dongleSerial || payload.dongleSerial.trim().length < 4) {
+    throw new Error("Numéro de série dongle invalide.");
+  }
+  const serial = payload.dongleSerial.trim().toUpperCase();
+
+  const serialClash = db
+    .prepare<{ id: string }>("SELECT id FROM iot_devices WHERE serial = ? LIMIT 1")
+    .get(serial);
+  if (serialClash) {
+    throw new Error(`Le dongle ${serial} est déjà associé à un véhicule.`);
+  }
+
+  // ── 1. Resolve client ────────────────────────────────────────────────
+  let clientId = payload.clientId ?? null;
+  let clientFullName = "";
+  if (clientId) {
+    const existing = db
+      .prepare<{ id: string; full_name: string }>("SELECT id, full_name FROM clients WHERE id = ?")
+      .get(clientId);
+    if (!existing) throw new Error("Client introuvable.");
+    clientFullName = existing.full_name;
+  } else {
+    const nc = payload.newClient;
+    if (!nc || !nc.fullName?.trim() || !nc.phone?.trim()) {
+      throw new Error("Nom complet et téléphone requis pour créer un nouveau client.");
+    }
+    clientId = slugId("c");
+    clientFullName = trimText(nc.fullName, "Client DiagAutoSN");
+    const clientEmail = trimText(nc.email, generateEmailForClient(clientFullName));
+    db.prepare(
+      "INSERT INTO clients (id, garage_id, full_name, email, phone, city) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(
+      clientId,
+      "g-001",
+      clientFullName,
+      clientEmail,
+      trimText(nc.phone, "+221 00 000 00 00"),
+      trimText(nc.city, "Dakar")
+    );
+  }
+
+  // ── 2. Resolve vehicle ───────────────────────────────────────────────
+  let vehicleId = payload.vehicleId ?? null;
+  let vehicleRow: { id: string; brand: string; model: string; plate: string } | null = null;
+  if (vehicleId) {
+    const existing = db
+      .prepare<{ id: string; brand: string; model: string; plate: string; client_id: string }>(
+        "SELECT id, brand, model, plate, client_id FROM vehicles WHERE id = ?"
+      )
+      .get(vehicleId);
+    if (!existing) throw new Error("Véhicule introuvable.");
+    if (existing.client_id !== clientId) {
+      throw new Error("Le véhicule sélectionné n'appartient pas à ce client.");
+    }
+    vehicleRow = existing;
+  } else {
+    const nv = payload.newVehicle;
+    if (!nv || !nv.brand?.trim() || !nv.model?.trim() || !nv.plate?.trim()) {
+      throw new Error("Marque, modèle et plaque requis pour créer un nouveau véhicule.");
+    }
+    vehicleId = slugId("v");
+    const brand = trimText(nv.brand, "—");
+    const model = trimText(nv.model, "—");
+    const plate = trimText(nv.plate, "DK 0000 AA").toUpperCase();
+    const vin = trimText(nv.vin, `VIN${randomSuffix(14).toUpperCase()}`);
+    const mileage = Math.max(0, Math.round(nv.mileage ?? 0));
+    const oilDue = mileage + 5000;
+    db.prepare(
+      `INSERT INTO vehicles (id, client_id, brand, model, plate, vin, mileage, health_score, insurance_due, inspection_due, oil_due_km, last_service_km)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      vehicleId,
+      clientId,
+      brand,
+      model,
+      plate,
+      vin,
+      mileage,
+      90,
+      "2027-01-01",
+      "2027-01-01",
+      oilDue,
+      mileage
+    );
+    vehicleRow = { id: vehicleId, brand, model, plate };
+  }
+
+  // ── 3. Provision IoT device ─────────────────────────────────────────
+  const deviceId = slugId("dev");
+  db.prepare(
+    "INSERT INTO iot_devices (id, vehicle_id, serial, status, installed_at, last_seen) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(deviceId, vehicleId, serial, "active", nowIso, nowIso);
+
+  // Seed three nominal signals so the carnet is alive on first login.
+  const insertSignal = db.prepare(
+    "INSERT INTO telemetry_signals (id, vehicle_id, device_id, metric, value, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  );
+  [
+    [signalId(vehicleId, "tension batterie"), vehicleId, deviceId, "Tension batterie", "12.6 V", "ok", nowIso],
+    [signalId(vehicleId, "pression pneus"), vehicleId, deviceId, "Pression pneus", "2.3 bar", "ok", nowIso],
+    [signalId(vehicleId, "moteur"), vehicleId, deviceId, "Moteur", "stable", "ok", nowIso],
+  ].forEach((row) => insertSignal.run(...(row as [string, string, string, string, string, string, string])));
+
+  // ── 4. Provision the client user account ────────────────────────────
+  // Reuse the client user if one already exists for this client; otherwise
+  // create a new one. Either way we issue a fresh password.
+  type UserHit = { id: string; email: string };
+  const existingUser = db
+    .prepare<UserHit>(
+      "SELECT id, email FROM users WHERE client_id = ? AND role_id = 'role-client' ORDER BY created_at LIMIT 1"
+    )
+    .get(clientId);
+
+  let userId: string;
+  let userEmail: string;
+  if (existingUser) {
+    userId = existingUser.id;
+    userEmail = existingUser.email;
+  } else {
+    userId = slugId("u");
+    // Read the client's email from the clients table to keep them in sync.
+    const c = db
+      .prepare<{ email: string }>("SELECT email FROM clients WHERE id = ?")
+      .get(clientId);
+    userEmail = c?.email ?? generateEmailForClient(clientFullName);
+    db.prepare(
+      "INSERT INTO users (id, client_id, garage_id, email, full_name, role_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run(userId, clientId, "g-001", userEmail, clientFullName, "role-client", "active");
+  }
+
+  const issuedPassword = generateIssuedPassword();
+  db.prepare("UPDATE users SET password_hash = ?, status = 'active' WHERE id = ?").run(
+    hashPassword(issuedPassword),
+    userId
+  );
+
+  // ── 5. Audit ────────────────────────────────────────────────────────
+  auditEvent(
+    db,
+    technician,
+    "installation_kit",
+    "iot_device",
+    deviceId,
+    `Kit ${serial} installé · ${vehicleRow.brand} ${vehicleRow.model} ${vehicleRow.plate} · ${clientFullName}${
+      payload.technicianNote ? ` · note: ${payload.technicianNote.slice(0, 120)}` : ""
+    }`
+  );
+
+  return {
+    client: { id: clientId, fullName: clientFullName },
+    vehicle: { id: vehicleId, brand: vehicleRow.brand, model: vehicleRow.model, plate: vehicleRow.plate },
+    device: { id: deviceId, serial },
+    user: { id: userId, email: userEmail, issuedPassword },
+  };
+}
+
+export type RecentInstallationRow = {
+  id: string;
+  summary: string;
+  entityId: string;
+  createdAt: string;
+};
+
+/** Returns the most recent N installation audit events. Plain-text passwords
+ *  are NEVER stored, so we only surface the trace, not the credential. */
+export function getRecentInstallationsFromDb(limit = 10) {
+  const db = getDatabase();
+  return db
+    .prepare<RecentInstallationRow>(
+      `SELECT id, summary, entity_id AS entityId, created_at AS createdAt
+       FROM audit_events
+       WHERE action = 'installation_kit'
+       ORDER BY created_at DESC
+       LIMIT ?`
+    )
+    .all(Math.max(1, Math.min(50, Math.floor(limit))));
 }

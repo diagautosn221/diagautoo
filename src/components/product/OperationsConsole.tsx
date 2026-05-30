@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { easings } from "@/lib/motion/easings";
+import { TelemetryFeed, type TelemetryEntry, type FeedSeverity } from "@/components/carnet/TelemetryFeed";
 
 type TabKey = "atelier" | "client" | "iot" | "alertes" | "finance";
 
@@ -514,6 +515,26 @@ export function OperationsConsole() {
   }
 
   const criticalAlert = priorityAlerts[0];
+  const fleetFeed: TelemetryEntry[] = [
+    ...overview.alerts.slice(0, 6).map((a) => ({
+      id: `alert-${a.id}`,
+      at: a.due ? new Date(a.due).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "live",
+      vehicle: `${a.vehicle} · ${a.client}`,
+      source: a.source ?? "Alerte",
+      severity: (a.severity ?? "watch") as FeedSeverity,
+      message: a.label,
+    })),
+    ...overview.signals.slice(0, 8).map((s) => ({
+      id: `signal-${s.id}`,
+      at: s.updatedAt
+        ? new Date(s.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+        : "now",
+      vehicle: s.vehicle,
+      source: s.device,
+      severity: (s.status === "ok" ? "info" : s.status) as FeedSeverity,
+      message: `${s.metric} · ${s.value}`,
+    })),
+  ];
   const cashToCollect = overview.invoices.reduce((total, invoice) => total + Math.max(invoice.total - invoice.paid, 0), 0);
   const blockedInspections = overview.inspections.filter((inspection) => inspection.status === "bloquante").length;
   const busyTeam = overview.team.filter((member) => member.status !== "disponible").length;
@@ -527,6 +548,13 @@ export function OperationsConsole() {
       <div className="pointer-events-none absolute inset-y-0 left-[7vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-45 lg:block" />
       <div className="pointer-events-none absolute inset-y-0 right-[18vw] hidden w-px bg-[linear-gradient(to_bottom,transparent,var(--color-border),transparent)] opacity-28 lg:block" />
       <div className="container-tight">
+        <div className="mb-6">
+          <TelemetryFeed
+            entries={fleetFeed}
+            rows={4}
+            title="Flux IoT temps réel · flotte connectée"
+          />
+        </div>
         <div className="mb-6 grid gap-5 xl:grid-cols-[0.86fr_1.14fr]">
           <article className="hallmark-stage relative overflow-hidden rounded-[30px] p-5 md:p-7">
             <div className="absolute left-0 top-8 h-32 w-1 status-rail" />
@@ -918,7 +946,7 @@ export function OperationsConsole() {
                                 </div>
                               </div>
                               <Link
-                                href={`/carnet?clientId=${encodeURIComponent(client.id)}`}
+                                href={`/atelier/clients/${client.id}`}
                                 className="rounded-[12px] border border-[var(--color-border)] px-3 py-2 font-mono text-xs text-[var(--color-fg-subtle)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-fg)] sm:text-right"
                               >
                                 {client.vehicles} vehicule(s)

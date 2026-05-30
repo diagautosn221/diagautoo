@@ -21,15 +21,25 @@ async function readJson(response, label) {
   return json;
 }
 
-async function get(path, label) {
-  return readJson(await fetch(`${baseUrl}${path}`), label);
+function extractCookie(setCookie, name) {
+  if (!setCookie) return null;
+  const headers = Array.isArray(setCookie) ? setCookie : [setCookie];
+  for (const raw of headers) {
+    const first = raw.split(";")[0];
+    if (first.startsWith(`${name}=`)) return first.slice(name.length + 1);
+  }
+  return null;
 }
 
-async function post(path, body, label) {
+async function get(path, label, headers = {}) {
+  return readJson(await fetch(`${baseUrl}${path}`, { headers }), label);
+}
+
+async function post(path, body, label, headers = {}) {
   return readJson(
     await fetch(`${baseUrl}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify(body),
     }),
     label
@@ -38,6 +48,24 @@ async function post(path, body, label) {
 
 const stamp = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(8, 14);
 const report = {};
+
+const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email: process.env.SMOKE_CLIENT_EMAIL || "awa.diop@diagautosn.local",
+    password: process.env.SMOKE_PASSWORD || "diagauto",
+  }),
+});
+const login = await readJson(loginResponse, "client login");
+const setCookie = loginResponse.headers.getSetCookie?.() ?? loginResponse.headers.get("set-cookie");
+const sessionCookie = extractCookie(setCookie, "dauth");
+assert(sessionCookie, "client login did not return a dauth cookie");
+const clientAuth = { Cookie: `dauth=${sessionCookie}` };
+report.login = {
+  role: login.user?.role,
+  clientId: login.user?.clientId,
+};
 
 const health = await get("/api/health", "backend health");
 assert(health.ok === true, "backend health must be ok");
@@ -66,7 +94,7 @@ report.overview = {
   alerts: overview.alerts.length,
 };
 
-const portal = await get("/api/client/portal?clientId=c-001", "client portal");
+const portal = await get("/api/client/portal", "client portal", clientAuth);
 assert(portal.source === "sqlite", "client portal must use sqlite");
 assert(portal.portal?.vehicles?.length >= 1, "client portal has no vehicle");
 
@@ -165,7 +193,7 @@ if (mutationEnabled) {
 
   const vehicleId = portal.portal.vehicles[0].id;
   const vehicleProfile = await post(
-    "/api/client/portal?clientId=c-001",
+    "/api/client/portal",
     {
       action: "update_vehicle_profile",
       vehicleId,
@@ -177,19 +205,21 @@ if (mutationEnabled) {
       inspectionDue: "2026-07-12",
       oilDueKm: 126500,
     },
-    "client vehicle profile"
+    "client vehicle profile",
+    clientAuth
   );
   assert(vehicleProfile.portal?.vehicles?.[0]?.mileage === 124900, "vehicle profile did not update mileage");
   report.portal.vehicleProfile = vehicleProfile.recordId;
 
   const callback = await post(
-    "/api/client/portal?clientId=c-001",
+    "/api/client/portal",
     {
       action: "request_callback",
       vehicleId,
       reason: "QA demande rappel atelier",
     },
-    "client callback"
+    "client callback",
+    clientAuth
   );
   assert(callback.recordId, "client callback did not return a record id");
   assert(callback.portal?.vehicles?.length >= 1, "client callback did not return portal data");
