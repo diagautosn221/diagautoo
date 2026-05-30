@@ -10,7 +10,7 @@ export type TelemetryEntry = {
   at: string;             // ISO or pretty time
   vehicle: string;        // "Mercedes C220 · DK-4582-AA"
   code?: string;          // "P0420"
-  source: string;         // "CAN bus", "OBD-II", "ECU", etc.
+  source: string;         // user-facing source label, e.g. "Lecture boîtier"
   severity: FeedSeverity;
   message: string;
 };
@@ -43,7 +43,7 @@ export function TelemetryFeed({
   entries,
   stream = true,
   rows = 5,
-  title = "Détections IoT en direct",
+  title = "Lecture boîtier en direct",
 }: TelemetryFeedProps) {
   const [tick, setTick] = useState(0);
 
@@ -73,7 +73,7 @@ export function TelemetryFeed({
               {title}
             </h3>
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-              ingestion · /api/iot/telemetry · {entries.length} flux actifs
+              lecture en direct · {entries.length} info(s) reçue(s)
             </p>
           </div>
         </div>
@@ -137,7 +137,7 @@ export function TelemetryFeed({
 
       {entries.length === 0 && (
         <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
-          aucun flux ingéré pour l'instant
+          aucune info reçue pour l'instant
         </p>
       )}
     </div>

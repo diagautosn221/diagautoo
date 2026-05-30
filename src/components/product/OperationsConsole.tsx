@@ -562,10 +562,10 @@ export function OperationsConsole() {
               <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
                 <div className="min-w-0 pl-2">
                   <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">
-                    Le poste de l'atelier
+                    Le poste · liggéey bi
                   </p>
-                  <h2 className="mt-3 max-w-[12ch] text-balance font-display text-4xl font-black leading-[0.86] tracking-[-0.065em] md:text-6xl">
-                    Tout ton garage, sur un seul écran.
+                  <h2 className="mt-3 max-w-[14ch] text-balance font-display text-4xl font-light leading-[0.92] tracking-[-0.04em] md:text-6xl">
+                    Tout ton atelier, sur un seul écran.
                   </h2>
                 </div>
                 <div className="command-rail flex min-h-12 items-center justify-between gap-4 rounded-[16px] px-4 md:min-w-60">

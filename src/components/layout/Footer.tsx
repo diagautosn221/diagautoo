@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logomark } from "@/components/brand/Logomark";
 
 const columns: Array<{
   title: string;
@@ -39,14 +40,8 @@ export function Footer() {
       <div className="container-tight grid gap-12 py-16 md:grid-cols-12 md:gap-10">
         {/* Brand block */}
         <div className="md:col-span-5">
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-[10px] border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/12">
-              <span className="h-3 w-5 rounded-sm border border-[var(--color-accent)]" />
-            </span>
-            <span className="font-mono text-[13px] font-semibold tracking-[0.18em] text-[var(--color-fg)]">
-              DIAGAUTO<span className="text-[var(--color-accent)]">SN</span>
-            </span>
-          </div>
+          <Logomark size={32} />
+
 
           <p className="mt-5 max-w-sm text-pretty text-xl font-medium italic leading-snug text-[var(--color-fg)] font-display">
             « Sa oto la wax. Nun lañu la jangale. »
@@ -56,10 +51,12 @@ export function Footer() {
             Dakar, téranga partout au Sénégal.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-            <span className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5">Wave accepté</span>
-            <span className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5">Orange Money</span>
-            <span className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5">WhatsApp 24h</span>
+          <div className="mt-6 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+            <span>Wave · OM · cash</span>
+            <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
+            <span>WhatsApp 24h</span>
+            <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
+            <span>Sans engagement</span>
           </div>
         </div>
 

@@ -272,7 +272,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
               className="mt-7 rounded-[20px] border border-[var(--color-success)]/35 bg-[var(--color-success)]/8 p-5"
             >
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-success)]">
-                ✓ Carnet ouvert · donne ces identifiants au client (à recopier, ne réapparaîtront pas)
+                ✓ Carnet ouvert · jamm ak jamm · transmets ces identifiants (affichés une seule fois)
               </p>
               <h3 className="mt-2 font-display text-xl font-semibold tracking-[-0.02em]">
                 {result.client.fullName} · {result.vehicle.brand} {result.vehicle.model} ({result.vehicle.plate})

@@ -100,6 +100,14 @@ function formatMoney(value?: number) {
   return `${(value ?? 0).toLocaleString("fr-FR")} F`;
 }
 
+function readableAlertSource(alert: PortalAlert) {
+  if (alert.type === "vidange") return "Suivi entretien";
+  if (alert.type === "visite_technique") return "Rappel visite technique";
+  if (alert.type === "assurance") return "Rappel assurance";
+  if (alert.type === "diagnostic") return "Lecture du boîtier";
+  return "Suivi véhicule";
+}
+
 function PortalSectionHeader({ eyebrow, title, count }: { eyebrow: string; title: string; count?: number | string }) {
   return (
     <div className="flex items-start justify-between gap-4">
@@ -225,7 +233,7 @@ function buildTimelineEntries(portal: ClientPortalData): TimelineEntry[] {
       id: `alert-${alert.id ?? alert.type ?? alert.label ?? index}`,
       date: alert.due ?? "à venir",
       label: alert.label ?? "Alerte enregistrée",
-      detail: alert.source ? `Source · ${alert.source}` : undefined,
+      detail: readableAlertSource(alert),
       state: "upcoming",
       severity: sev,
     });
@@ -300,9 +308,10 @@ function buildDriverIntelligence({
 
   const top = rank[alertTone] >= rank[signalTone] ? alert : undefined;
   const cause =
-    top?.source ||
     top?.label ||
-    (signal ? `${signal.metric ?? "Signal IoT"} · ${signal.value ?? "valeur instable"}` : "Aucune anomalie critique");
+    (signal ? `${signal.metric ?? "Signal véhicule"} · ${signal.value ?? "valeur instable"}` : undefined) ||
+    top?.source ||
+    "Aucune anomalie critique";
 
   if (tone === "blocked") {
     return {
@@ -310,11 +319,11 @@ function buildDriverIntelligence({
       verdict: "Stopper et appeler",
       headline: "Le système recommande de ne pas continuer sans contrôle atelier.",
       cause,
-      action: "Contactez DiagAutoSN. Un technicien doit valider le véhicule avant reprise.",
+      action: "Écris ou appelle DiagAutoSN. Un technicien doit valider le véhicule avant reprise.",
       evidence: [
         `${alerts.length} alerte(s) active(s)`,
         `Score santé ${healthScore}/100`,
-        deviceLastSeen ? `Kit vu à ${new Date(deviceLastSeen).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : "Kit IoT en attente",
+        deviceLastSeen ? `Boîtier vu à ${new Date(deviceLastSeen).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}` : "Boîtier en attente",
       ],
     };
   }
@@ -329,7 +338,7 @@ function buildDriverIntelligence({
       evidence: [
         `${alerts.length} alerte(s) à traiter`,
         `Score santé ${healthScore}/100`,
-        `${signals.length} flux IoT analysé(s)`,
+        `${signals.length} point(s) voiture analysé(s)`,
       ],
     };
   }
@@ -344,7 +353,7 @@ function buildDriverIntelligence({
       evidence: [
         `${alerts.length} rappel(s) ou alerte(s)`,
         `Score santé ${healthScore}/100`,
-        "Surveillance continue active",
+        "Suivi en direct actif",
       ],
     };
   }
@@ -352,13 +361,13 @@ function buildDriverIntelligence({
   return {
     tone,
     verdict: "Vous pouvez rouler",
-    headline: "Aucun signal critique détecté sur le dernier cycle IoT.",
-    cause: "Systèmes principaux nominalement stables",
+    headline: "Rien d'inquiétant détecté sur la dernière lecture du boîtier.",
+    cause: "Moteur, batterie et rappels stables",
     action: "Continuez le suivi. Le carnet vous prévient dès qu'un seuil change.",
     evidence: [
       "Alerte critique: 0",
       `Score santé ${healthScore}/100`,
-      `${signals.length} flux IoT synchronisé(s)`,
+      `${signals.length} point(s) voiture synchronisé(s)`,
     ],
   };
 }
@@ -461,12 +470,12 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
         <section className="mb-6">
           <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-                Dashboard temps réel · DiagAutoSN Carnet
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
+                Sa oto · en direct
               </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-4xl">
-                Bonjour {clientName.split(" ")[0]}.
-                <span className="ml-2 text-[var(--color-fg-muted)]">Voici l'état de votre {vehicleLabel}.</span>
+              <h2 className="mt-3 font-display text-3xl font-light leading-[1.05] tracking-[-0.035em] md:text-4xl">
+                Asalaa malekum, {clientName.split(" ")[0]}.
+                <span className="ml-2 italic font-display-italic text-[var(--color-fg-muted)]">Voici ta {vehicleLabel}.</span>
               </h2>
             </div>
             <span className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-muted)]">
@@ -665,7 +674,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                           {alert.type}
                         </span>
                       </div>
-                      <p className="mt-3 text-xs leading-5 text-[var(--color-fg-subtle)]">{alert.source}</p>
+                      <p className="mt-3 text-xs leading-5 text-[var(--color-fg-subtle)]">{readableAlertSource(alert)}</p>
                       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
                           initial={{ width: "18%" }}
@@ -804,6 +813,11 @@ function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntellig
     blocked: "var(--color-danger)",
   };
   const color = colorByTone[intelligence.tone];
+  const driverSummary = [
+    ["Ce que ça veut dire", intelligence.headline],
+    ["Ce que tu fais maintenant", intelligence.action],
+    ["Ce que le garage reçoit", "Un résumé clair de l'alerte, sans te faire répéter toute l'histoire."],
+  ];
 
   return (
     <section
@@ -859,6 +873,21 @@ function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntellig
           <p className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm font-semibold text-[var(--color-fg)]">
             {intelligence.action}
           </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {driverSummary.map(([label, text]) => (
+              <div
+                key={label}
+                className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)]/70 p-3"
+              >
+                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+                  {label}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-[var(--color-fg-muted)]">
+                  {text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

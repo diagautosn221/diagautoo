@@ -85,6 +85,14 @@ function lastServiceFloor(_mileage: number, nextServiceKm: number) {
   return Math.max(0, nextServiceKm - 4000);
 }
 
+function alertSourceLabel(alert: Alert) {
+  if (alert.type === "vidange") return "Entretien moteur";
+  if (alert.type === "visite_technique") return "Papier véhicule";
+  if (alert.type === "assurance") return "Assurance";
+  if (alert.type === "diagnostic") return "Lecture boîtier";
+  return "Alerte voiture";
+}
+
 export function CockpitHero({
   brand,
   model,
@@ -106,7 +114,7 @@ export function CockpitHero({
     return alerts.slice(0, 6).map((alert, index) => ({
       id: alert.id ?? `alert-${index}`,
       label: alert.label ?? "Alerte enregistrée",
-      source: alert.source ?? alert.type,
+      source: alertSourceLabel(alert),
       severity: photoSevMap[(alert.severity ?? "watch").toLowerCase()] ?? "watch",
     }));
   }, [alerts]);
@@ -140,7 +148,7 @@ export function CockpitHero({
         id: `alert-${alert.id ?? i}`,
         at: prettyTime(alert.due),
         vehicle: `${vehicleLabel} · ${plate ?? "—"}`,
-        source: alert.source ?? alert.type ?? "Alerte",
+        source: alertSourceLabel(alert),
         severity: sevMap[(alert.severity ?? "watch").toLowerCase()] ?? "watch",
         message: alert.label ?? "Alerte enregistrée.",
       });
@@ -205,7 +213,7 @@ export function CockpitHero({
       <div className="hairline-card flex flex-wrap items-center justify-between gap-3 rounded-[14px] px-4 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-fg-muted)]">
         <span className="flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-[var(--color-accent)] live-dot" />
-          {deviceSerial ? `Kit ${deviceSerial}` : "Kit IoT · démo"}
+          {deviceSerial ? "Boîtier connecté" : "Boîtier en démonstration"}
           {lastSeen ? ` · vu ${prettyTime(lastSeen)}` : ""}
         </span>
         <span className="tabular text-[var(--color-fg)]">

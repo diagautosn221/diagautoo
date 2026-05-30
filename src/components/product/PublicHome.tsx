@@ -1,8 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { LockedPreview } from "@/components/marketing/LockedPreview";
+import { LiveCockpitDemo } from "@/components/marketing/LiveCockpitDemo";
+import { BrandsStrip } from "@/components/marketing/BrandsStrip";
 import { getWorkshopPhoto, PEXELS } from "@/lib/photos";
 
 type PublicHomeProps = {
@@ -31,41 +34,103 @@ type PublicHomeProps = {
 const pillars: Array<{
   number: string;
   title: string;
-  pull: string;
+  pull: ReactNode;
   text: string;
   scene: "service" | "training" | "hands" | "install" | "diagnostic" | "bay" | "hero" | "team";
 }> = [
   {
-    number: "I",
+    number: "01",
     title: "Anticipe avant que ça casse",
-    pull: "Une fuite d'huile : 8 000 F. Un moteur fondu : 480 000 F. À toi de voir.",
+    pull: "Une petite alerte traitée tôt coûte souvent moins cher qu'une grosse panne.",
     text:
-      "Notre boîtier veille sur ton moteur, ta batterie et ton huile en continu. Tu reçois l'alerte deux semaines avant le drame, ndank ndank, le temps de t'organiser.",
+      "Le boîtier veille sur ton moteur, ta batterie et ton huile en continu. Quand un signal devient anormal, tu reçois une alerte claire avant de rester bloqué.",
     scene: "hands",
   },
   {
-    number: "II",
+    number: "02",
     title: "Comprends sans être mécano",
-    pull: "« Voyant moteur » au lieu de « code P0420 ». Wax mu dëgg.",
+    pull: <>« Voyant moteur » au lieu de « code P0420 ». <span className="wolof">Wax mu dëgg.</span></>,
     text:
-      "Aucun jargon sur ton téléphone. Juste ce que tu dois faire, et quand. Comme ton oncle mécano à Mermoz — mais dans ta poche, et toujours dispo.",
+      "Aucun jargon sur ton téléphone. Juste ce que tu dois faire, et quand. Comme ton oncle mécano à Mermoz — dans ta poche, toujours dispo.",
     scene: "install",
   },
   {
-    number: "III",
+    number: "03",
     title: "Parle direct à ton mécano",
-    pull: "Il voit ce que tu vois. Vous gagnez 30 minutes à chaque appel.",
+    pull: "Il voit ce que tu vois. L'appel commence déjà avec les bonnes infos.",
     text:
-      "Quand tu lui demandes de l'aide, ton garagiste a déjà le rapport. Pas de blabla, pas de devis gonflé, pas de pièges. Téranga atelier, vraie.",
+      "Quand tu demandes de l'aide, ton garagiste a déjà le rapport. Pas de blabla, pas de devis gonflé. Téranga, vraie.",
     scene: "training",
   },
   {
-    number: "IV",
+    number: "04",
     title: "Garde tes papiers vivants",
-    pull: "Plus jamais un PV sur la Corniche pour visite expirée.",
+    pull: "Assurance, visite technique, vidange : les oublis coûtent cher.",
     text:
-      "Assurance, visite technique, vidange : on garde l'œil sur tes échéances et on te rappelle 30 jours avant. Sutura sur tes papiers, jamm dans ton portefeuille.",
+      "Assurance, visite technique, vidange : on garde l'œil sur tes échéances et on te rappelle 30 jours avant.",
     scene: "service",
+  },
+];
+
+const senegalContext = [
+  {
+    tag: "Climat",
+    title: "L'harmattan tue la clim.",
+    text:
+      "Poussière, chaleur, filtres fatigués : on garde les rappels visibles avant que la clim ne lâche au mauvais moment.",
+  },
+  {
+    tag: "Routes",
+    title: "La VDN casse les triangles.",
+    text:
+      "Nids de poule, dos d'âne, routes chargées : ton carnet t'aide à suivre pneus, freins et suspension sans attendre le bruit inquiétant.",
+  },
+  {
+    tag: "Carburant",
+    title: "Le gasoil de coin de rue est inégal.",
+    text:
+      "Si le moteur change de comportement après un plein, tu as un historique clair à montrer au garage.",
+  },
+  {
+    tag: "Saison",
+    title: "Le Magal multiplie les pannes.",
+    text:
+      "Avant un long trajet Dakar, Touba, Thiès ou Mbour, tu vérifies les points sensibles sans parler mécanique.",
+  },
+  {
+    tag: "Trafic",
+    title: "Patte d'Oie use l'embrayage.",
+    text:
+      "Embouteillages, chaleur, arrêts répétés : les alertes t'aident à prévoir l'entretien au lieu de subir.",
+  },
+  {
+    tag: "Téranga",
+    title: "Ton frère prend la voiture ? On suit.",
+    text:
+      "Si la voiture sert à toute la famille, le compte client garde l'historique, les rappels et les alertes au même endroit.",
+  },
+];
+
+const terangaPromises = [
+  {
+    hour: "Dakar",
+    label: "Installation guidée",
+    text: "On installe le kit, on crée le compte client et on explique l'application en wolof ou en français.",
+  },
+  {
+    hour: "WhatsApp",
+    label: "Suivi humain",
+    text: "Quand une alerte tombe, tu peux écrire au garage avec le bon contexte. Pas besoin de deviner.",
+  },
+  {
+    hour: "Wave · OM · cash",
+    label: "Paiement libre",
+    text: "Wave, Orange Money, espèces, virement. Tu paies comme ça t'arrange.",
+  },
+  {
+    hour: "Privé",
+    label: "Données protégées",
+    text: "La vitrine ne montre jamais les vraies plaques, VIN, kilomètres ou alertes clients.",
   },
 ];
 
@@ -74,254 +139,223 @@ export function PublicHome({ site }: PublicHomeProps) {
 
   return (
     <main className="paper-warm min-h-[100dvh] text-[var(--color-fg)]">
-      {/* ════════════════════ HERO — EDITORIAL FULL-BLEED ════════════════════ */}
-      <section className="relative overflow-hidden pt-24 pb-20 md:pt-28 md:pb-28">
+      {/* ════════════════════ HERO ════════════════════ */}
+      <section className="relative overflow-hidden pt-28 pb-24 md:pt-32 md:pb-28">
         <div
-          className="absolute -top-32 right-0 size-[640px] rounded-full pointer-events-none opacity-50"
+          className="absolute -top-32 right-[-10%] size-[680px] rounded-full pointer-events-none opacity-50"
           aria-hidden
           style={{
             background:
-              "radial-gradient(circle, color-mix(in srgb, var(--color-brass) 30%, transparent), transparent 70%)",
-            filter: "blur(60px)",
+              "radial-gradient(circle, color-mix(in srgb, var(--color-brass) 26%, transparent), transparent 70%)",
+            filter: "blur(80px)",
           }}
         />
 
-        <div className="container-tight relative grid gap-10 lg:grid-cols-12 lg:items-start">
+        <div className="container-tight relative grid gap-14 lg:grid-cols-12 lg:items-start lg:gap-16">
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-7"
           >
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="editorial-stamp">
-                <span className="size-1.5 rounded-full bg-[var(--color-accent)] live-dot" />
-                Dakar · Mermoz · depuis 2018
-              </span>
-              <span className="tape font-mono text-[var(--color-fg)]">
-                №42 · sa oto, sa carnet
-              </span>
-            </div>
+            <span className="kicker kicker-accent">
+              <span className="size-1.5 rounded-full bg-[var(--color-accent)] live-dot" />
+              Dakar · depuis 2018
+            </span>
 
-            <h1 className="font-display bleed-display mt-8 max-w-full text-balance text-[clamp(3rem,9vw,8rem)]">
+            <h1 className="font-display bleed-display mt-10 text-balance text-[clamp(3.25rem,9.5vw,8.5rem)]">
               Sa oto la{" "}
               <span className="font-display-italic text-[var(--color-accent)]">
                 wax.
               </span>
             </h1>
-            <p className="font-display mt-4 max-w-[20ch] text-[clamp(2rem,5vw,3.6rem)] font-light leading-[0.96] tracking-[-0.025em] text-[var(--color-fg-muted)]">
-              Nun, lañu la <span className="hand-circle">jangale</span>.
+            <p className="font-display mt-3 text-[clamp(1.75rem,4.5vw,3rem)] font-light leading-[1] tracking-[-0.025em] text-[var(--color-fg-muted)]">
+              Nun, lañu la <span className="font-display-italic text-[var(--color-fg)]">jangale</span>.
             </p>
-            <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--color-fg-subtle)]">
-              ta voiture parle — nous, on traduit
+            <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--color-fg-subtle)]">
+              ta voiture parle. nous, on traduit.
             </p>
 
-            <p className="mt-10 max-w-2xl text-pretty text-lg leading-8 text-[var(--color-fg-muted)] md:text-xl">
+            <p className="mt-12 max-w-[58ch] text-pretty text-lg leading-8 text-[var(--color-fg-muted)] md:text-xl md:leading-9">
               {homepage?.description ?? (
                 <>
-                  Un boîtier gros comme une boîte d'allumettes branché sous ton volant.
-                  Il écoute ton moteur, ta batterie, ton huile, tes pneus —{" "}
-                  <span className="hand-underline">en continu</span>. Sur ton téléphone, tu
-                  vois ta voiture vivre. Quand une panne se prépare, tu le sais
-                  avant elle. <strong className="text-[var(--color-fg)]">Avant la panne. Avant la dépense. Avant l'oubli.</strong>
+                  Un boîtier discret branché sous ton volant. Il écoute ton
+                  moteur, ta batterie, ton huile, tes pneus — en continu. Sur
+                  ton téléphone, tu vois ta voiture vivre. Quand une panne se
+                  prépare, tu le sais avant elle.
                 </>
               )}
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3">
+            <p className="mt-6 font-display text-2xl font-light italic leading-snug text-[var(--color-fg)] md:text-3xl">
+              Avant la panne. Avant la dépense. Avant l'oubli.
+            </p>
+
+            <div className="mt-12 flex flex-wrap items-center gap-3">
               <Link
                 href="#contact"
-                className="group inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-7 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px"
+                className="group inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-8 text-sm font-semibold text-[var(--color-accent-ink)] shadow-soft transition hover:bg-[var(--color-accent-soft)] hover:shadow-lifted active:translate-y-px"
               >
-                Dafa neex · je veux le boîtier
+                Je veux le boîtier
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition group-hover:translate-x-1">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
               </Link>
               <Link
                 href="/login"
-                className="inline-flex min-h-13 items-center justify-center rounded-full border-2 border-[var(--color-fg)] bg-transparent px-7 text-sm font-semibold text-[var(--color-fg)] transition hover:bg-[var(--color-fg)] hover:text-white active:translate-y-px"
+                className="inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--color-fg)]/30 bg-transparent px-8 text-sm font-semibold text-[var(--color-fg)] transition hover:border-[var(--color-fg)] hover:bg-[var(--color-fg)] hover:text-white active:translate-y-px"
               >
                 Ouvrir mon carnet
               </Link>
             </div>
 
-            <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-[var(--color-border)] pt-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-              <span>Toutes marques · même les vieilles</span>
+            <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+              <span>Toutes marques</span>
               <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-              <span>Wave · Orange Money · cash</span>
+              <span>Wave · OM · cash</span>
               <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-              <span>On vient chez toi</span>
+              <span>On vient à toi</span>
               <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-              <span>Sutura totale sur tes données</span>
+              <span>Sutura totale</span>
             </div>
           </motion.div>
 
           <motion.aside
-            initial={{ opacity: 0, x: 20, rotate: 1 }}
-            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-5"
+            className="relative lg:col-span-5"
           >
-            <figure className="grain-overlay grain-soft relative isolate overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-fg)] shadow-[0_40px_120px_color-mix(in_srgb,var(--color-fg)_22%,transparent)]">
+            <figure className="grain-overlay grain-soft shadow-cinema relative isolate overflow-hidden rounded-[28px] bg-[var(--color-fg)]">
               <img
-                src={PEXELS.garageHero}
-                alt="Atelier DiagAutoSN à Dakar"
+                src={getWorkshopPhoto("diagnostic", "hero")}
+                alt="Diagnostic automobile avec matériel branché sur une voiture"
                 className="aspect-[4/5] w-full object-cover"
                 loading="eager"
                 fetchPriority="high"
               />
-              <div
-                className="absolute inset-0 z-0"
-                aria-hidden
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.10) 30%, rgba(0,0,0,0.78) 100%)",
-                }}
-              />
-
-              <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-2">
-                <span
-                  className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-white"
-                  style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                >
-                  ATELIER 01 · MERMOZ
-                </span>
-              </div>
-
-              <figcaption className="absolute inset-x-0 bottom-0 z-10 p-5 text-white md:p-7">
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--color-brass-soft)]">
-                  Ce matin, à l'atelier
+              <div className="hero-image-grading" aria-hidden />
+              <figcaption className="absolute inset-x-0 bottom-0 z-10 p-6 text-white md:p-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[color:var(--color-brass-soft)]">
+                  Kit installé · compte privé · garage prêt
                 </p>
-                <p className="font-display mt-3 text-balance text-2xl font-light italic leading-[1.05] md:text-3xl">
-                  « Un propriétaire sur deux ignore qu'une vidange en retard
-                  multiplie par trois le prix d'une réparation moteur. »
-                </p>
-                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/65">
-                  — Cheikh, chef d'atelier · n°47
+                <p className="mt-4 font-display text-2xl font-light italic leading-[1.1] md:text-[1.75rem]">
+                  Le visiteur voit l'idée. Le client voit sa vraie voiture.
                 </p>
               </figcaption>
-
-              <div className="absolute -left-4 top-1/2 z-10 -translate-y-1/2 rotate-[-4deg] rounded-[10px] bg-[var(--color-brass)] px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.25)]">
-                <div className="font-display tabular text-3xl font-medium leading-none text-[var(--color-fg)]">
-                  {site.proof.connectedDevices}+
-                </div>
-                <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-fg)]">
-                  voitures sous notre œil
-                </div>
-              </div>
             </figure>
 
-            <p className="mt-4 max-w-xs font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-              Photo · atelier DiagAutoSN, Mermoz · prise ce matin
-            </p>
+            <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-border)] shadow-soft">
+              {[
+                { label: "public", value: "aucune plaque" },
+                { label: "privé", value: "compte client" },
+                { label: "garage", value: "rapport utile" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-[var(--color-bg-elevated)] p-4 text-center">
+                  <div className="font-display text-xl font-light leading-none text-[var(--color-fg)] md:text-2xl">
+                    {stat.value}
+                  </div>
+                  <div className="mt-2 font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </motion.aside>
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
-      {/* ════════════════════ PROMESSE DE MARQUE — À LA SONATEL ════════════════════ */}
-      <section className="container-tight py-16 md:py-20">
-        <div className="grid gap-8 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-2">
-            <span className="editorial-num">★</span>
-          </div>
-          <div className="md:col-span-10">
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--color-accent)]">
-              Notre promesse
-            </p>
-            <h2 className="font-display mt-3 text-balance text-[clamp(2rem,5.5vw,4rem)] font-light leading-[1.0] tracking-[-0.025em]">
-              Donner à chaque voiture du Sénégal{" "}
-              <span className="font-display-italic text-[var(--color-accent)]">
-                l'occasion de durer.
-              </span>
-            </h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">
-              Pas de produit miracle. Pas de promesse en l'air. Juste un boîtier
-              fiable, un carnet clair et une équipe joignable du matin au soir —
-              comme à l'ancienne, mais sur ton téléphone.
-            </p>
-          </div>
+      {/* ════════════════════ PROMESSE ════════════════════ */}
+      <section className="container-tight py-24 md:py-32">
+        <div className="hairline mb-20" />
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="kicker kicker-accent inline-flex">
+            Notre promesse
+          </p>
+          <h2 className="font-display mt-8 text-balance text-[clamp(2.5rem,6.5vw,5rem)] font-light leading-[1.0] tracking-[-0.035em]">
+            Donner à chaque voiture du Sénégal{" "}
+            <span className="font-display-italic text-[var(--color-accent)]">
+              l'occasion de durer.
+            </span>
+          </h2>
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-[var(--color-fg-muted)]">
+            Pas de produit miracle. Pas de promesse en l'air. Un boîtier
+            fiable, un carnet clair, une équipe joignable du matin au soir.
+            Comme à l'ancienne — mais dans ta poche.
+          </p>
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
+      {/* ════════════════════ BRANDS MARQUEE ════════════════════ */}
+      <BrandsStrip />
 
-      {/* ════════════════════ HISTOIRE ════════════════════ */}
+      {/* ════════════════════ LIVE PRODUCT DEMO ════════════════════ */}
+      <LiveCockpitDemo />
+
+      {/* ════════════════════ PARCOURS CLIENT ════════════════════ */}
       <section id="histoire" className="container-tight py-24 md:py-32">
-        <div className="grid gap-10 md:grid-cols-12 md:items-start">
-          <div className="md:col-span-4">
-            <span className="editorial-num">01.</span>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
-              Notre histoire
+        <div className="hairline mb-20" />
+        <div className="grid gap-12 md:grid-cols-12 md:items-start md:gap-16">
+          <div className="md:col-span-5">
+            <p className="kicker kicker-accent inline-flex">
+              Comment tu deviens client
             </p>
-            <h2 className="font-display mt-4 text-balance text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] tracking-[-0.025em]">
-              On a commencé par <span className="font-display-italic text-[var(--color-accent)]">en avoir marre</span>.
+            <h2 className="font-display mt-8 text-balance text-[clamp(2.2rem,5vw,3.8rem)] font-light leading-[1.02] tracking-[-0.03em]">
+              Une fois le kit installé, <span className="font-display-italic text-[var(--color-accent)]">tout devient personnel</span>.
             </h2>
           </div>
 
-          <div className="md:col-span-7 md:col-start-6">
+          <div className="md:col-span-6 md:col-start-7">
             <p className="text-lg leading-9 text-[var(--color-fg)]">
-              Trop de propriétaires nous arrivaient avec une voiture déjà fichue.
-              Pas par négligence — par <strong className="text-[var(--color-accent)]">manque d'info</strong>.
-              Personne ne leur avait dit que ce petit bruit, c'était la pompe à
-              eau. Personne ne leur avait expliqué pourquoi cette vidange ne
-              pouvait plus attendre.
+              La page publique sert seulement à comprendre ce qu'on fait. Les
+              vraies données commencent après l'installation : ton compte, ta
+              voiture, ton kilométrage, tes rappels, tes alertes et ton historique
+              restent dans ton espace privé.
             </p>
-            <p className="mt-6 text-lg leading-9 text-[var(--color-fg-muted)]">
-              En 2018, à Mermoz, on a branché notre premier boîtier sur une
-              Toyota Prado. L'idée tenait en une phrase : <em>que le propriétaire sache ce
-              que le moteur sait</em>. Six ans plus tard, on équipe les voitures du
-              Sénégal — Dakar, Thiès, Saint-Louis, Mbour — et on forme les
-              ateliers qui les accompagnent.
+            <p className="mt-7 text-lg leading-9 text-[var(--color-fg-muted)]">
+              Le garage voit ce qu'il doit voir pour t'aider : diagnostic,
+              priorité, rendez-vous, devis et documents. Un visiteur sans compte
+              ne voit rien de confidentiel. Sutura d'abord, technologie après.
             </p>
-            <p className="mt-6 font-display text-2xl font-light italic leading-[1.25] text-[var(--color-fg)]">
-              « Sa oto mérite mieux qu'un coup de hasard. Et toi aussi. »
-            </p>
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-              — L'équipe DiagAutoSN · 6 mécanos, 2 développeurs, 1 atelier
-            </p>
+            <div className="mt-10 border-l-2 border-[var(--color-accent)] pl-6">
+              <p className="font-display text-2xl font-light italic leading-[1.25] text-[var(--color-fg)] md:text-3xl">
+                « Tu n'as pas besoin d'être mécano. Tu as besoin de savoir quoi faire, au bon moment. »
+              </p>
+              <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+                — DiagAutoSN · carnet client
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
-      {/* ════════════════════ POURQUOI — 4 EDITORIAL PILLARS ════════════════════ */}
+      {/* ════════════════════ POURQUOI — 4 PILLARS ════════════════════ */}
       <section id="pourquoi" className="container-tight py-24 md:py-32">
-        <div className="mb-14 grid gap-6 md:grid-cols-12 md:items-end">
+        <div className="hairline mb-20" />
+        <div className="mb-16 grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
-            <span className="editorial-num">02.</span>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
-              Ci kaw ci kanam · quatre choses qu'on fait mieux que personne
+            <span className="editorial-num">02</span>
+            <p className="mt-6 kicker kicker-accent inline-flex">
+              Ci kaw ci kanam · quatre choses qu'on fait mieux
             </p>
-            <h2 className="font-display mt-4 max-w-[16ch] text-balance text-[clamp(2.4rem,6vw,4.4rem)] font-light leading-[1.0] tracking-[-0.03em]">
-              On ne te <span className="font-display-italic text-[var(--color-accent)]">vend pas</span> un service.{" "}
-              <br className="hidden md:inline" />
-              On te <span className="hand-underline">tient</span> par la main.
+            <h2 className="font-display mt-8 max-w-[18ch] text-balance text-[clamp(2.4rem,6vw,4.4rem)] font-light leading-[1.0] tracking-[-0.03em]">
+              On ne te <span className="font-display-italic text-[var(--color-accent)]">vend</span> pas un service.{" "}
+              On te tient par la main.
             </h2>
           </div>
         </div>
 
-        <div className="grid gap-y-16 md:grid-cols-12 md:gap-x-8">
+        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           {pillars.map((pillar, i) => (
             <motion.article
               key={pillar.number}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-15% 0px" }}
-              transition={{ duration: 0.7, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className={`md:col-span-6 ${i % 2 === 1 ? "md:translate-y-12" : ""}`}
+              transition={{ duration: 0.65, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-start">
-                <figure className="grain-overlay grain-soft relative isolate aspect-square w-full overflow-hidden rounded-[18px] md:w-[180px]">
+              <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-start md:gap-7">
+                <figure className="grain-overlay grain-soft shadow-soft relative isolate aspect-square w-full overflow-hidden rounded-[20px] md:w-[200px]">
                   <img
                     src={getWorkshopPhoto(pillar.scene, "card")}
                     alt=""
@@ -333,22 +367,22 @@ export function PublicHome({ site }: PublicHomeProps) {
                     aria-hidden
                     style={{
                       background:
-                        "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.55) 100%)",
+                        "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.45) 100%)",
                     }}
                   />
-                  <span className="absolute left-3 top-3 font-display italic text-3xl font-light text-white/90">
+                  <span className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/90">
                     {pillar.number}
                   </span>
                 </figure>
 
                 <div className="min-w-0">
-                  <h3 className="font-display text-2xl font-medium leading-tight tracking-[-0.015em] md:text-3xl">
+                  <h3 className="font-display text-[clamp(1.6rem,3vw,2.1rem)] font-medium leading-tight tracking-[-0.02em]">
                     {pillar.title}
                   </h3>
-                  <p className="font-display mt-4 text-lg font-light italic leading-snug text-[var(--color-accent)] md:text-xl">
+                  <p className="font-display mt-5 text-lg font-light italic leading-snug text-[var(--color-accent)] md:text-xl">
                     {pillar.pull}
                   </p>
-                  <p className="mt-4 text-base leading-7 text-[var(--color-fg-muted)]">
+                  <p className="mt-5 text-base leading-7 text-[var(--color-fg-muted)]">
                     {pillar.text}
                   </p>
                 </div>
@@ -358,116 +392,90 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
-      {/* ════════════════════ CAS RÉEL DAKAR ════════════════════ */}
-      <section id="cas-reel" className="relative overflow-hidden bg-[var(--color-fg)] py-24 text-white md:py-32">
+      {/* ════════════════════ SCÉNARIO CLIENT ANONYMISÉ ════════════════════ */}
+      <section id="cas-reel" className="relative overflow-hidden bg-[var(--color-fg)] py-28 text-white md:py-36">
         <div className="container-tight">
-          <div className="mb-12 grid gap-6 md:grid-cols-12 md:items-end">
+          <div className="mb-16 grid gap-8 md:grid-cols-12 md:items-end">
             <div className="md:col-span-8">
-              <span className="editorial-num text-white/40">03.</span>
-              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-brass-soft)]">
-                Cas réel · Mamadou, Mermoz · mars 2026
+              <span className="editorial-num text-white/35">03</span>
+              <p className="mt-6 kicker kicker-ink inline-flex">
+                Scénario courant · aperçu anonymisé
               </p>
-              <h2 className="font-display mt-4 text-balance text-[clamp(2.4rem,6vw,4.4rem)] font-light leading-[1.0] tracking-[-0.03em]">
-                Sa Prado lui parlait depuis lundi.{" "}
+              <h2 className="font-display mt-8 text-balance text-[clamp(2.4rem,6vw,4.4rem)] font-light leading-[1.0] tracking-[-0.03em]">
+                La voiture prévient tôt.{" "}
                 <span className="font-display-italic text-[var(--color-brass-soft)]">
-                  Il a économisé 240 000 F.
+                  Tu décides avant que la panne décide pour toi.
                 </span>
               </h2>
             </div>
           </div>
 
-          <div className="grid gap-10 md:grid-cols-12 md:items-stretch">
-            <figure className="grain-overlay grain-strong relative isolate aspect-[4/5] overflow-hidden rounded-[20px] md:col-span-5">
+          <div className="grid gap-12 md:grid-cols-12 md:items-stretch md:gap-16">
+            <figure className="grain-overlay grain-soft shadow-cinema relative isolate aspect-[4/5] overflow-hidden rounded-[24px] md:col-span-5">
               <img
                 src={PEXELS.toolboard}
                 alt="Intervention atelier DiagAutoSN"
                 className="absolute inset-0 h-full w-full object-cover"
                 loading="lazy"
               />
-              <div
-                className="absolute inset-0"
-                aria-hidden
-                style={{
-                  background:
-                    "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65) 100%)",
-                }}
-              />
+              <div className="hero-image-grading" aria-hidden />
               <figcaption className="absolute inset-x-5 bottom-5 z-10">
-                <span className="tape font-mono text-[10px]">14h32 · 3 mars 2026 · Mermoz</span>
+                <span className="kicker kicker-ink">
+                  Photo atelier · données client masquées
+                </span>
               </figcaption>
             </figure>
 
-            <div className="md:col-span-7 md:pl-6">
-              <ol className="space-y-7 border-l-2 border-[var(--color-brass)]/40 pl-6">
-                <li>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-brass-soft)]">
-                    Lundi 2 mars · 09h17 · sur la VDN
-                  </p>
-                  <p className="mt-2 font-display text-xl font-light leading-snug text-white">
-                    Le boîtier capte une légère baisse de pression d'huile.
-                    Notif sur le téléphone de Mamadou : <em>« À vérifier cette
-                    semaine. Pas urgent, mais ne traîne pas. »</em>
-                  </p>
-                </li>
-                <li>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-brass-soft)]">
-                    Mardi 3 mars · 14h32 · atelier Mermoz
-                  </p>
-                  <p className="mt-2 font-display text-xl font-light leading-snug text-white">
-                    Diagnostic : joint spi avant qui suinte. Notre mécano a
-                    déjà vu le rapport. Réparation en 90 min.{" "}
-                    <strong>32 000 F. Vidange comprise.</strong>
-                  </p>
-                </li>
-                <li>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-brass-soft)]">
-                    Sans le boîtier · scénario probable
-                  </p>
-                  <p className="mt-2 font-display text-xl font-light leading-snug text-white">
-                    Le moteur aurait tourné à sec en allant à Saly pour la
-                    Korité. Démontage complet, segments, coussinets. <strong className="text-[var(--color-accent)]">272 000 F</strong> + 5 jours d'immobilisation. Famille bloquée sans voiture.
-                  </p>
-                </li>
+            <div className="md:col-span-7">
+              <ol className="space-y-8 border-l border-[var(--color-brass)]/30 pl-8">
+                {[
+                  {
+                    when: "Signal détecté",
+                    text: <>Le boîtier remarque un comportement inhabituel : batterie faible, chauffe, huile ou voyant moteur. Sur ton téléphone, le message reste simple : <em className="text-white/85">« À vérifier. Voici quoi faire. »</em></>,
+                  },
+                  {
+                    when: "Garage prévenu",
+                    text: <>Si tu demandes de l'aide, l'atelier reçoit le contexte utile : véhicule, alerte, priorité, historique récent. Le diagnostic commence déjà mieux.</>,
+                  },
+                  {
+                    when: "Décision claire",
+                    text: <>Tu sais si tu peux rouler, surveiller ou passer à l'atelier. L'objectif : éviter les surprises, les dépenses inutiles et les longues journées sans voiture.</>,
+                  },
+                ].map((step) => (
+                  <li key={step.when}>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-brass-soft)]">
+                      {step.when}
+                    </p>
+                    <p className="font-display mt-3 text-xl font-light leading-[1.5] text-white md:text-2xl">
+                      {step.text}
+                    </p>
+                  </li>
+                ))}
               </ol>
 
-              <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-8">
-                <div>
-                  <div className="font-display tabular text-4xl font-light text-[var(--color-brass-soft)] md:text-5xl">
-                    240k
+              <div className="mt-12 grid grid-cols-3 gap-6 border-t border-white/12 pt-10">
+                {[
+                  ["avant", "la panne"],
+                  ["clair", "pour le client"],
+                  ["utile", "pour l'atelier"],
+                ].map(([value, label]) => (
+                  <div key={label}>
+                    <div className="font-display tabular text-4xl font-light leading-none text-[var(--color-brass-soft)] md:text-5xl">
+                      {value}
+                    </div>
+                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
+                      {label}
+                    </div>
                   </div>
-                  <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-                    F CFA économisés
-                  </div>
-                </div>
-                <div>
-                  <div className="font-display tabular text-4xl font-light text-[var(--color-brass-soft)] md:text-5xl">
-                    5 j
-                  </div>
-                  <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-                    Famille mobile
-                  </div>
-                </div>
-                <div>
-                  <div className="font-display tabular text-4xl font-light text-[var(--color-brass-soft)] md:text-5xl">
-                    8×
-                  </div>
-                  <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-                    Moins cher
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <blockquote className="mt-10 border-l-4 border-[var(--color-accent)] pl-5">
-                <p className="font-display text-2xl font-light italic leading-snug text-white md:text-3xl">
-                  « Sans l'alerte, j'aurais roulé jusqu'à Saly avec la famille.
-                  Je dois ma boîte de vitesse — et ma Korité — à DiagAutoSN. »
+              <blockquote className="mt-12 border-l-2 border-[var(--color-accent)] pl-6">
+                <p className="font-display text-2xl font-light italic leading-snug text-white md:text-[1.75rem]">
+                  « Sur la page publique, on montre le principe. Dans le compte client, on montre la vraie voiture. »
                 </p>
-                <footer className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
-                  — Mamadou D., Toyota Prado 2019, Mermoz · client depuis 2022
+                <footer className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
+                  — règle produit DiagAutoSN · confidentialité par défaut
                 </footer>
               </blockquote>
             </div>
@@ -475,79 +483,45 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      {/* ════════════════════ SÉNÉGAL — LOCAL CONTEXT ════════════════════ */}
+      {/* ════════════════════ SÉNÉGAL CONTEXT ════════════════════ */}
       <section id="senegal" className="container-tight py-24 md:py-32">
-        <div className="mb-12 grid gap-6 md:grid-cols-12 md:items-end">
+        <div className="hairline mb-20" />
+        <div className="mb-16 grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
-            <span className="editorial-num">04.</span>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
-              Fait pour rouler au Sénégal
+            <span className="editorial-num">04</span>
+            <p className="mt-6 kicker kicker-accent inline-flex">
+              Pensé pour rouler au Sénégal
             </p>
-            <h2 className="font-display mt-4 max-w-[18ch] text-balance text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] tracking-[-0.025em]">
+            <h2 className="font-display mt-8 max-w-[18ch] text-balance text-[clamp(2.2rem,5vw,3.8rem)] font-light leading-[1.02] tracking-[-0.03em]">
               On connaît tes routes.{" "}
               <span className="font-display-italic text-[var(--color-accent)]">
                 Et ce qu'elles font à sa oto.
               </span>
             </h2>
           </div>
-          <p className="md:col-span-5 text-base leading-7 text-[var(--color-fg-muted)]">
-            Les outils diagnostic occidentaux ignorent l'harmattan, la VDN et les
-            ralentisseurs sauvages de Yoff. Nous, on est nés ici. On comprend.
+          <p className="md:col-span-5 text-base leading-8 text-[var(--color-fg-muted)]">
+            Les outils diagnostic occidentaux ignorent l'harmattan, la VDN et
+            les ralentisseurs sauvages de Yoff. Nous, on est nés ici.
           </p>
         </div>
 
-        <div className="grid gap-px overflow-hidden rounded-[20px] border border-[var(--color-border-strong)] bg-[var(--color-border-strong)] md:grid-cols-3">
-          {[
-            {
-              tag: "Climat",
-              title: "L'harmattan tue la clim.",
-              text:
-                "La poussière du désert sature tes filtres en trois mois. On surveille ta pression de clim et on te dit quand elle peine, avant qu'elle lâche en pleine chaleur de Tabaski.",
-            },
-            {
-              tag: "Routes",
-              title: "La VDN casse les triangles.",
-              text:
-                "Nids de poule, dos d'âne sauvages, ralentisseurs non signalés à Yoff : on suit la fatigue de ta suspension et on t'alerte avant que la rotule rende l'âme.",
-            },
-            {
-              tag: "Carburant",
-              title: "Le gasoil de coin de rue est inégal.",
-              text:
-                "Si ton moteur racle après un plein douteux, on le voit dans les données. On t'oriente vers les bonnes stations — Total Mermoz, Elton VDN, Ola Liberté 6.",
-            },
-            {
-              tag: "Saison",
-              title: "Le Magal multiplie les pannes.",
-              text:
-                "300 km Dakar-Touba dans la même journée, chargé : c'est dur. On prépare ta voiture deux semaines avant et on l'inspecte après le retour.",
-            },
-            {
-              tag: "Trafic",
-              title: "Le bouchon de Patte d'Oie use l'embrayage.",
-              text:
-                "Stop-and-go à la sortie de la VDN : on compte tes engagements d'embrayage et on prévient quand le disque arrive en bout de course.",
-            },
-            {
-              tag: "Téranga",
-              title: "Tu prêtes ta voiture ? On suit.",
-              text:
-                "Ton frère prend la voiture pour Mbour le week-end ? Tu vois où elle est, comment elle roule, et si l'alerte tombe. Famille tranquille, voiture tranquille.",
-            },
-          ].map((card, i) => (
+        <div className="grid gap-px overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-border)] shadow-soft md:grid-cols-3">
+          {senegalContext.map((card, i) => (
             <motion.article
               key={card.tag}
-              initial={{ opacity: 0, y: 14 }}
+              initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10% 0px" }}
-              transition={{ duration: 0.55, delay: i * 0.06 }}
-              className="bg-[var(--color-bg-elevated)] p-7 transition hover:bg-[var(--color-surface)]"
+              transition={{ duration: 0.5, delay: i * 0.05 }}
+              className="bg-[var(--color-bg-elevated)] p-8 transition hover:bg-[var(--color-surface)]"
             >
-              <span className="tape inline-block">{card.tag}</span>
-              <h3 className="font-display mt-6 text-2xl font-medium leading-tight tracking-[-0.015em]">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-accent)]">
+                {card.tag}
+              </p>
+              <h3 className="font-display mt-6 text-2xl font-medium leading-tight tracking-[-0.018em]">
                 {card.title}
               </h3>
-              <p className="mt-3 text-base leading-7 text-[var(--color-fg-muted)]">
+              <p className="mt-4 text-base leading-7 text-[var(--color-fg-muted)]">
                 {card.text}
               </p>
             </motion.article>
@@ -555,187 +529,151 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
       {/* ════════════════════ TÉRANGA — SERVICE PROMISE ════════════════════ */}
       <section id="teranga" className="container-tight py-24 md:py-32">
-        <div className="grid gap-10 md:grid-cols-12">
+        <div className="hairline mb-20" />
+        <div className="grid gap-12 md:grid-cols-12 md:gap-16">
           <div className="md:col-span-5">
-            <span className="editorial-num">05.</span>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
+            <span className="editorial-num">05</span>
+            <p className="mt-6 kicker kicker-accent inline-flex">
               Téranga DiagAutoSN
             </p>
-            <h2 className="font-display mt-4 text-balance text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] tracking-[-0.025em]">
+            <h2 className="font-display mt-8 text-balance text-[clamp(2.2rem,5vw,3.8rem)] font-light leading-[1.02] tracking-[-0.03em]">
               Du matin au soir,{" "}
               <span className="font-display-italic text-[var(--color-accent)]">
                 on roule avec toi.
               </span>
             </h2>
-            <p className="mt-6 text-base leading-7 text-[var(--color-fg-muted)]">
-              Pas une hotline qui te raccroche au nez. Pas un bot qui te dit
-              « consultez la FAQ ». Une vraie équipe à Mermoz, joignable en
-              wolof ou en français, qui connaît sa oto.
+            <p className="mt-8 text-base leading-8 text-[var(--color-fg-muted)]">
+              Pas une hotline qui te raccroche au nez. Pas un bot. Une vraie
+              équipe à Mermoz, joignable en wolof ou en français, qui connaît
+              sa oto.
             </p>
           </div>
 
           <div className="md:col-span-7">
-            <div className="grid gap-3">
-              {[
-                {
-                  hour: "08h00 → 19h00",
-                  label: "Atelier ouvert",
-                  text: "On t'accueille à Mermoz, en face du Total. Sans rendez-vous pour les urgences.",
-                },
-                {
-                  hour: "24h / 24",
-                  label: "WhatsApp d'astreinte",
-                  text: "Une question urgente la nuit ? On répond en moins de 30 minutes — vraiment.",
-                },
-                {
-                  hour: "Wave · OM · cash",
-                  label: "Paiement comme tu veux",
-                  text: "Tu paies au moment qui t'arrange. On accepte tout, sans frais cachés.",
-                },
-                {
-                  hour: "0 F",
-                  label: "Sans engagement",
-                  text: "Tu arrêtes quand tu veux. Pas de contrat de 24 mois, pas de petites lignes.",
-                },
-              ].map((row, i) => (
-                <motion.article
+            <div className="divide-y divide-[var(--color-border)] overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-soft">
+              {terangaPromises.map((row, i) => (
+                <motion.div
                   key={row.label}
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-10% 0px" }}
-                  transition={{ duration: 0.5, delay: i * 0.06 }}
-                  className="grid grid-cols-[auto_1fr] items-start gap-5 rounded-[16px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+                  transition={{ duration: 0.45, delay: i * 0.06 }}
+                  className="grid grid-cols-[1fr_2fr] items-center gap-6 px-6 py-6 md:px-8 md:py-8"
                 >
-                  <div className="text-right">
-                    <p className="font-display tabular text-2xl font-light leading-none text-[var(--color-accent)]">
+                  <div>
+                    <p className="font-display text-2xl font-light leading-none text-[var(--color-accent)] md:text-3xl">
                       {row.hour}
                     </p>
-                    <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+                    <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
                       {row.label}
                     </p>
                   </div>
-                  <p className="text-base leading-7 text-[var(--color-fg-muted)]">{row.text}</p>
-                </motion.article>
+                  <p className="text-base leading-7 text-[var(--color-fg)]">{row.text}</p>
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
       {/* ════════════════════ APERÇU CARNET ════════════════════ */}
       <section id="preview" className="py-24 md:py-32">
-        <div className="container-tight mb-10">
-          <span className="editorial-num">06.</span>
-          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
+        <div className="container-tight mb-16">
+          <div className="hairline mb-20" />
+          <span className="editorial-num">06</span>
+          <p className="mt-6 kicker kicker-accent inline-flex">
             Aperçu carnet · loolu lañu ko def
-          </p>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-            voici ce qu'on a fait
           </p>
         </div>
         <LockedPreview />
       </section>
 
-      <div className="container-tight">
-        <div className="brush-divider" />
-      </div>
-
-      {/* ════════════════════ CONTACT — EDITORIAL POSTCARD ════════════════════ */}
+      {/* ════════════════════ CONTACT ════════════════════ */}
       <section id="contact" className="container-tight py-24 md:py-32">
-        <div className="grid gap-10 md:grid-cols-12 md:items-stretch">
+        <div className="hairline mb-20" />
+        <div className="grid gap-12 md:grid-cols-12 md:items-stretch md:gap-16">
           <div className="md:col-span-7">
-            <span className="editorial-num">07.</span>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
+            <span className="editorial-num">07</span>
+            <p className="mt-6 kicker kicker-accent inline-flex">
               On démarre, wala ?
             </p>
-            <h2 className="font-display mt-4 max-w-[14ch] text-balance text-[clamp(2.6rem,7vw,5.2rem)] font-light leading-[0.98] tracking-[-0.03em]">
+            <h2 className="font-display mt-8 max-w-[14ch] text-balance text-[clamp(2.6rem,7vw,5.4rem)] font-light leading-[0.98] tracking-[-0.035em]">
               On vient chez toi.{" "}
               <span className="font-display-italic text-[var(--color-accent)]">
-                Ton carnet s'ouvre dans l'heure.
+                Ton compte devient ton garage de poche.
               </span>
             </h2>
-            <p className="mt-8 max-w-[58ch] text-pretty text-lg leading-8 text-[var(--color-fg-muted)]">
+            <p className="mt-10 max-w-[58ch] text-pretty text-lg leading-8 text-[var(--color-fg-muted)]">
               Écris-nous sur WhatsApp avec ta voiture (marque, modèle, année).
               On revient sous 24 heures avec un créneau d'installation à Dakar
-              ou en région. Boîtier branché en 8 minutes, carnet ouvert dans la
-              foulée. Pas de paperasse, pas d'attente.
+              ou en région. Après pose du kit, on ouvre ton espace privé et on
+              vérifie ensemble les premières alertes.
             </p>
 
-            <ul className="mt-10 grid gap-3 text-base text-[var(--color-fg)]">
+            <ul className="mt-12 grid gap-5 text-base text-[var(--color-fg)]">
               {[
-                ["I", "On vient à toi, ou tu passes à Mermoz."],
-                ["II", "Wave, Orange Money, espèces, virement — tout passe."],
-                ["III", "Sans engagement. Tu arrêtes quand tu veux."],
-                ["IV", "Sutura sur tes données. Elles ne sortent pas du Sénégal."],
+                ["01", "On vient à toi, ou tu passes à Mermoz."],
+                ["02", "Wave, Orange Money, espèces, virement — tout passe."],
+                ["03", "Tu gardes ton compte, ton historique et tes documents."],
+                ["04", "Sutura sur tes données : pas de plaque ni de VIN sur la vitrine publique."],
               ].map(([num, text]) => (
-                <li key={num} className="flex items-start gap-4">
-                  <span className="font-display italic text-2xl font-light text-[var(--color-accent)] leading-none">
+                <li key={num} className="flex items-start gap-5">
+                  <span className="font-mono text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-accent)] mt-1.5">
                     {num}
                   </span>
-                  <span>{text}</span>
+                  <span className="leading-relaxed">{text}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <aside className="md:col-span-5">
-            <div className="grain-overlay grain-soft relative isolate overflow-hidden rounded-[22px] border border-[var(--color-border-strong)] bg-[var(--color-fg)] p-7 text-white shadow-[0_30px_80px_color-mix(in_srgb,var(--color-fg)_24%,transparent)]">
+            <div className="grain-overlay grain-soft shadow-cinema relative isolate overflow-hidden rounded-[24px] bg-[var(--color-fg)] p-8 text-white md:p-10">
               <div className="flex items-center justify-between">
-                <span className="editorial-stamp" style={{ color: "var(--color-brass-soft)" }}>
-                  bët ci bët
+                <span className="kicker kicker-ink">
+                  Bët ci bët
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
-                  Dakar · Sénégal
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
+                  Dakar
                 </span>
               </div>
-              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-white/55">
-                « œil dans l'œil » — on se parle direct
-              </p>
 
-              <p className="font-display mt-7 text-2xl font-light italic leading-snug">
+              <p className="font-display mt-10 text-[1.75rem] font-light italic leading-[1.15] md:text-[2rem]">
                 « Wax nu. Ñu def la ñu war. »
               </p>
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
                 Parle-nous. On fait ce qu'il faut.
               </p>
 
-              <div className="mt-8 grid gap-3">
+              <div className="mt-10 grid gap-3">
                 <a
                   href="https://wa.me/221"
-                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-[12px] bg-[var(--color-accent)] px-5 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px"
+                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-[14px] bg-[var(--color-accent)] px-6 text-sm font-semibold text-[var(--color-accent-ink)] shadow-lifted transition hover:bg-[var(--color-accent-soft)] active:translate-y-px"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9s-.5-.1-.7.1-.7.9-.9 1.1-.4.2-.7.1c-.3-.1-1.3-.5-2.5-1.5-.9-.8-1.5-1.8-1.7-2.1s0-.4.1-.6.3-.3.4-.5l.3-.4c.1-.1.1-.3 0-.4s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.4s-.9.9-.9 2.2.9 2.6 1 2.8c.1.2 1.8 2.7 4.3 3.8.6.3 1.1.4 1.4.5.6.2 1.2.2 1.6.1.5-.1 1.7-.7 1.9-1.3s.2-1.2.2-1.3c-.1-.1-.3-.1-.5-.3z" />
                     <path d="M12 2C6.5 2 2 6.5 2 12c0 1.7.5 3.4 1.3 4.9L2 22l5.3-1.4c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z" />
                   </svg>
-                  Écris-nous sur WhatsApp
+                  Écrire sur WhatsApp
                 </a>
                 <a
                   href="mailto:contact@diagautosn.com"
-                  className="inline-flex min-h-13 items-center justify-center rounded-[12px] border-2 border-white/20 px-5 text-sm font-semibold text-white transition hover:border-white/60 active:translate-y-px"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[14px] border border-white/15 px-6 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/[0.04] active:translate-y-px"
                 >
                   contact@diagautosn.com
                 </a>
               </div>
 
-              <div className="mt-8 border-t border-white/15 pt-6">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
-                  Atelier
+              <div className="mt-10 border-t border-white/12 pt-7">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
+                  Atelier · Mermoz
                 </p>
-                <p className="mt-2 font-display text-lg font-light leading-tight text-white">
+                <p className="mt-3 font-display text-xl font-light leading-snug">
                   Rue de Mermoz, en face du Total
                 </p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
                   Lundi → Samedi · 08h → 19h · jamm ak jamm
                 </p>
               </div>

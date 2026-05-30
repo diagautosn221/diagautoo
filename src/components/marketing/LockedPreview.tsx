@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PhotoCockpit, type PhotoCockpitAlert } from "@/components/carnet/PhotoCockpit";
+// Clean editorial preview — voice keeps Wolof; visual restraint over flair.
 
 const demoAlerts: PhotoCockpitAlert[] = [
   {
@@ -78,7 +79,7 @@ export function LockedPreview() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 px-6 pb-10 text-center md:pb-14"
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/92 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-muted)] backdrop-blur-md">
+            <span className="kicker">
               <LockGlyph />
               Aperçu anonymisé · accès complet après installation
             </span>

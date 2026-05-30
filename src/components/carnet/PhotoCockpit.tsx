@@ -136,7 +136,7 @@ export function PhotoCockpit({
           <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3 py-1.5 backdrop-blur-md">
             <span className="size-1.5 rounded-full bg-[var(--color-accent)] live-dot" />
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/85">
-              {privacyMode ? "aperçu anonymisé" : `kit IoT · ${lastSeenLabel}`}
+              {privacyMode ? "aperçu anonymisé" : `boîtier connecté · ${lastSeenLabel}`}
             </span>
           </div>
           <div className="flex items-center gap-2">

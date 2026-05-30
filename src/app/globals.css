@@ -377,7 +377,7 @@ textarea:focus-visible {
   font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
 }
 
-/* Film grain — applied to .grain-overlay or as ::after on any container */
+/* Ultra-subtle film grain — preserves photo dignity, no Instagram filter feel */
 .grain-overlay {
   position: relative;
   isolation: isolate;
@@ -389,155 +389,120 @@ textarea:focus-visible {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.20;
-  mix-blend-mode: overlay;
+  opacity: 0.04;
+  mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
   background-size: 160px 160px;
 }
 
-.grain-soft::after {
-  opacity: 0.10;
-}
+.grain-soft::after { opacity: 0.025; }
+.grain-strong::after { opacity: 0.06; }
 
-.grain-strong::after {
-  opacity: 0.30;
-}
-
-/* Editorial stamp — rotated circular badge, like an inked tampon */
-.editorial-stamp {
+/* Clean inline badge — replaces editorial-stamp + tape. No rotation. */
+.kicker {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border: 1.5px solid currentColor;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-fg) 12%, transparent);
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
-  transform: rotate(-2.5deg);
-  position: relative;
-}
-
-.editorial-stamp::before {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border: 1px dashed currentColor;
-  border-radius: 999px;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* Tape strip — sticky note / masking tape effect */
-.tape {
-  position: relative;
-  background: color-mix(in srgb, var(--color-brass) 35%, white);
-  padding: 0.35rem 0.85rem;
-  font-family: var(--font-mono);
-  font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-fg);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px color-mix(in srgb, var(--color-brass) 55%, transparent);
-  transform: rotate(-1.5deg);
+  color: var(--color-fg-muted);
+  background: color-mix(in srgb, white 60%, transparent);
+  backdrop-filter: blur(8px);
 }
 
-.tape::before,
-.tape::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-brass) 35%, white), transparent 70%);
-  opacity: 0.6;
+.kicker-accent {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
 }
 
-.tape::before {
-  left: -4px;
+.kicker-ink {
+  color: white;
+  border-color: color-mix(in srgb, white 18%, transparent);
+  background: color-mix(in srgb, black 35%, transparent);
 }
 
-.tape::after {
-  right: -4px;
-}
-
-/* Hand-drawn underline — used inline on key words */
-.hand-underline {
-  position: relative;
-  white-space: nowrap;
-}
-
-.hand-underline::after {
-  content: "";
-  position: absolute;
-  left: -2%;
-  right: -2%;
-  bottom: -0.12em;
-  height: 0.34em;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' fill='none' stroke='%23c14a31' stroke-width='3' stroke-linecap='round'><path d='M3 8 Q 50 1 100 6 T 197 4'/></svg>");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  pointer-events: none;
-  transform: rotate(-0.5deg);
-}
-
-/* Hand-drawn circle — wrap a word/element with a hand-drawn lasso */
-.hand-circle {
-  position: relative;
-  padding: 0.15em 0.5em;
-}
-
-.hand-circle::before {
-  content: "";
-  position: absolute;
-  inset: -0.15em -0.3em;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80' fill='none' stroke='%23c14a31' stroke-width='2.5' stroke-linecap='round'><path d='M30 12 Q 6 18 8 42 Q 18 70 100 70 Q 184 68 192 38 Q 188 12 110 8 Q 60 10 30 12'/></svg>");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  pointer-events: none;
-}
-
-/* Atelier paper background — subtle warm linear tint, dusty */
+/* Warm paper background — kept, but more refined gradient */
 .paper-warm {
   background:
-    radial-gradient(ellipse 80% 50% at 12% 0%, color-mix(in srgb, var(--color-brass) 14%, transparent), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 50%),
+    radial-gradient(ellipse 90% 60% at 18% 0%, color-mix(in srgb, var(--color-brass) 10%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 88% 100%, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 55%),
     var(--color-bg);
 }
 
-/* Editorial section divider — paint stroke instead of hairline */
-.brush-divider {
-  position: relative;
-  height: 6px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 24' preserveAspectRatio='none' fill='none' stroke='%23c14a31' stroke-width='4' stroke-linecap='round'><path d='M8 12 Q 200 4 400 14 T 800 10 T 1192 12'/></svg>");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-}
-
-/* Numbered editorial badge — for sections */
+/* Numbered section index — restrained, no italic axis exaggeration */
 .editorial-num {
   font-family: var(--font-display);
-  font-style: italic;
-  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
-  font-weight: 400;
-  font-size: clamp(3rem, 7vw, 5rem);
-  line-height: 0.85;
-  color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  font-weight: 300;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
-/* Bleed-edge wordmark — huge type that escapes its container */
+/* Hairline divider — premium, precise replacement for brush-divider */
+.hairline {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-fg) 18%, transparent) 30%,
+    color-mix(in srgb, var(--color-fg) 18%, transparent) 70%,
+    transparent
+  );
+}
+
+/* Premium shadow tiers — physically accurate, no harsh edges */
+.shadow-soft {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-fg) 6%, transparent),
+    0 8px 24px color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+
+.shadow-lifted {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--color-fg) 8%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-fg) 12%, transparent),
+    0 32px 80px color-mix(in srgb, var(--color-fg) 10%, transparent);
+}
+
+.shadow-cinema {
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--color-fg) 10%, transparent),
+    0 24px 60px color-mix(in srgb, var(--color-fg) 18%, transparent),
+    0 60px 140px color-mix(in srgb, var(--color-fg) 14%, transparent);
+}
+
+/* Hero image utility — full-bleed photography with refined grading */
+.hero-image-grading {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.05) 30%, rgba(0, 0, 0, 0.65) 100%);
+}
+
+/* Refined display text — bleed-display kept, no longer needs class */
 .bleed-display {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: -0.045em;
-  line-height: 0.86;
+  line-height: 0.92;
+}
+
+/* Wolof phrase emphasis — used inline for Wolof words */
+.wolof {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 80, "WONK" 0, "opsz" 144;
+  color: var(--color-accent);
 }
 
 /* Atelier asphalt — dark surface with subtle road texture */

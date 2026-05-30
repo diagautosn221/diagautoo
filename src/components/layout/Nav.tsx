@@ -3,6 +3,7 @@
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
+import { Logomark } from "@/components/brand/Logomark";
 
 const links = [
   { href: "#histoire", label: "Histoire" },
@@ -40,13 +41,9 @@ export function Nav() {
           <Link
             href="/"
             className="group inline-flex min-h-11 shrink items-center rounded-[14px] bg-white px-3 shadow-[0_12px_34px_color-mix(in_srgb,var(--color-fg)_8%,transparent)] ring-1 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)]"
-            aria-label="Diag auto sn - accueil"
+            aria-label="DiagAutoSN — accueil"
           >
-            <img
-              src="/diagautosn-logo.png"
-              alt="Diag auto sn"
-              className="h-8 w-[132px] object-contain sm:h-9 sm:w-[158px]"
-            />
+            <Logomark size={28} />
           </Link>
 
           <ul className="hidden items-center gap-1 md:flex">
