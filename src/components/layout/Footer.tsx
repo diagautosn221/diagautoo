@@ -1,130 +1,43 @@
 import Link from "next/link";
 import { Logomark } from "@/components/brand/Logomark";
 
-const columns: Array<{
-  title: string;
-  links: Array<{ href: string; label: string }>;
-}> = [
-  {
-    title: "Le service",
-    links: [
-      { href: "/#services", label: "Services" },
-      { href: "/#preview", label: "Compte client" },
-      { href: "/#preview", label: "Voir le carnet" },
-      { href: "/#contact", label: "Nous joindre" },
-    ],
-  },
-  {
-    title: "Pour les pros",
-    links: [
-      { href: "/login", label: "Espace atelier" },
-      { href: "/login", label: "Espace admin" },
-      { href: "/#contact", label: "Devenir partenaire" },
-    ],
-  },
-  {
-    title: "Légal & confiance",
-    links: [
-      { href: "/#preview", label: "Aperçu anonymisé" },
-      { href: "/#contact", label: "Confidentialité" },
-      { href: "/#contact", label: "Données privées" },
-    ],
-  },
+const links = [
+  { href: "/#services", label: "Services" },
+  { href: "/#preview", label: "Compte client" },
+  { href: "/login", label: "Connexion" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
-      <div className="container-tight grid gap-12 py-16 md:grid-cols-2 md:gap-10 lg:grid-cols-12">
-        {/* Brand block */}
-        <div className="md:col-span-2 lg:col-span-5">
-          <Logomark size={32} />
-
-
-          <p className="mt-5 max-w-sm text-pretty text-xl font-medium italic leading-snug text-[var(--color-fg)] font-display">
-            « Sa oto la wax. Nun lañu la jangale. »
+    <footer className="border-t border-[var(--color-border)] bg-white">
+      <div className="container-tight grid gap-5 py-7 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="min-w-0">
+          <Logomark size={28} />
+          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--color-fg-muted)]">
+            Ta voiture parle. DiagAutoSN traduit, alerte et garde ton carnet
+            privé à jour.
           </p>
-          <p className="mt-2 max-w-sm text-sm leading-7 text-[var(--color-fg-muted)]">
-            Ta voiture parle. Nous, on traduit. Atelier à Mermoz, équipe à
-            Dakar, téranga partout au Sénégal.
-          </p>
-
-          <div className="mt-6 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-            <span>Wave · OM · cash</span>
-            <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-            <span>WhatsApp atelier</span>
-            <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-            <span>Données privées</span>
-          </div>
         </div>
 
-        {/* Link columns */}
-        {columns.map((col) => (
-          <div key={col.title} className="lg:col-span-2">
-            <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-              {col.title}
-            </h4>
-            <ul className="mt-4 flex flex-col gap-2.5">
-              {col.links.map((link) => (
-                <li key={`${col.title}-${link.label}`}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-[var(--color-fg-muted)] transition-colors duration-200 hover:text-[var(--color-fg)]"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        {/* Contact column */}
-        <div className="lg:col-span-1">
-          <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-            Direct
-          </h4>
-          <ul className="mt-4 flex flex-col gap-2.5">
-            <li>
-              <a
-                href="https://wa.me/221"
-                className="text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-accent)]"
+        <div className="grid gap-4 md:justify-items-end">
+          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Liens pied de page">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="whitespace-nowrap text-sm font-semibold text-[var(--color-fg-muted)] transition hover:text-[var(--color-accent)]"
               >
-                WhatsApp
-              </a>
-            </li>
-            <li>
-              <a
-                href="mailto:contact@diagautosn.com"
-                className="text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-accent)]"
-              >
-                Email
-              </a>
-            </li>
-            <li>
-              <a
-                href="tel:+221"
-                className="text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-accent)]"
-              >
-                Téléphone
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="border-t border-[var(--color-border)]">
-        <div className="container-tight flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-            © {year} DiagAutoSN · Dakar · Sénégal
-          </p>
-          <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-            <span className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-[var(--color-success)] live-dot" />
-              Atelier Mermoz · jamm ak jamm
-            </span>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
+            <span>© {year} DiagAutoSN</span>
+            <span>Dakar · Sénégal</span>
+            <span>Wave · OM · Cash</span>
           </div>
         </div>
       </div>
