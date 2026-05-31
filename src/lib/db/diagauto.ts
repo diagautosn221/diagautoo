@@ -502,10 +502,10 @@ function seed(db: Database) {
     "INSERT OR IGNORE INTO iot_devices (id, vehicle_id, serial, status, installed_at, last_seen) VALUES (?, ?, ?, ?, ?, ?)"
   );
   [
-    ["dev-001", "v-001", "DASN-IOT-0421", "active", "2026-04-12", "14:32"],
-    ["dev-002", "v-002", "DASN-IOT-0742", "active", "2026-03-18", "14:30"],
-    ["dev-003", "v-003", "DASN-IOT-0194", "active", "2026-02-09", "14:31"],
-    ["dev-004", "v-004", "DASN-IOT-0882", "active", "2026-04-02", "14:29"],
+    ["dev-001", "v-001", "DASN-0421", "active", "2026-04-12", "14:32"],
+    ["dev-002", "v-002", "DASN-0742", "active", "2026-03-18", "14:30"],
+    ["dev-003", "v-003", "DASN-0194", "active", "2026-02-09", "14:31"],
+    ["dev-004", "v-004", "DASN-0882", "active", "2026-04-02", "14:29"],
   ].forEach((device) => insertDevice.run(...device));
 
   const insertSignal = db.prepare(
@@ -514,7 +514,7 @@ function seed(db: Database) {
   [
     ["sig-bat", "v-001", "dev-001", "Batterie", "12.6 V", "ok", "14:32"],
     ["sig-temp", "v-003", "dev-003", "Temperature moteur", "96 C", "watch", "14:31"],
-    ["sig-dtc", "v-003", "dev-003", "DTC actifs", "P0420, U0121", "blocked", "14:31"],
+    ["sig-dtc", "v-003", "dev-003", "Defauts moteur", "a controler", "blocked", "14:31"],
     ["sig-gps", "v-004", "dev-004", "Derniere position", "Dakar Plateau", "ok", "14:29"],
   ].forEach((signal) => insertSignal.run(...signal));
 
@@ -522,10 +522,10 @@ function seed(db: Database) {
     "INSERT OR IGNORE INTO alerts (id, vehicle_id, type, label, due, severity, source) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
   [
-    ["al-vid-001", "v-001", "vidange", "Vidange a planifier", "1 180 km restants", "watch", "kilometrage IoT + carnet atelier"],
+    ["al-vid-001", "v-001", "vidange", "Vidange a planifier", "1 180 km restants", "watch", "kilometrage boitier + carnet atelier"],
     ["al-vt-002", "v-002", "visite_technique", "Visite technique proche", "expire dans 17 jours", "urgent", "document vehicule + rappel legal"],
     ["al-ass-003", "v-004", "assurance", "Assurance a renouveler", "expire dans 8 jours", "urgent", "contrat client + relance garage"],
-    ["al-dtc-004", "v-003", "diagnostic", "Code P0420 actif", "atelier recommande", "blocked", "lecture OBD-II temps reel"],
+    ["al-dtc-004", "v-003", "diagnostic", "Defaut moteur detecte", "atelier recommande", "blocked", "lecture boitier temps reel"],
   ].forEach((alert) => insertAlert.run(...alert));
 
   const insertOrder = db.prepare(
@@ -569,7 +569,7 @@ function seed(db: Database) {
   );
   [
     ["ei-001", "est-001", "Vidange huile 5W30 + filtre", "piece_main_oeuvre", 39000, "pending"],
-    ["ei-002", "est-001", "Controle capteur IoT", "diagnostic", 23000, "pending"],
+    ["ei-002", "est-001", "Controle boitier connecte", "diagnostic", 23000, "pending"],
     ["ei-003", "est-002", "Controle freinage + preparation visite", "main_oeuvre", 98000, "pending"],
     ["ei-004", "est-002", "Frais visite technique", "admin", 50000, "pending"],
     ["ei-005", "est-003", "Catalyseur + diagnostic emission", "piece", 285000, "approved"],
@@ -633,20 +633,20 @@ function seed(db: Database) {
     "INSERT OR IGNORE INTO cms_pages (slug, title, description, status, updated_at) VALUES (?, ?, ?, ?, ?)"
   );
   [
-    ["accueil", "Garage connecte pour Dakar", "Diagnostic, entretien, documents et suivi IoT depuis un seul espace.", "publie", now],
-    ["services", "Services atelier", "Vidange, diagnostic OBD-II, assurance, visite technique, reception et suivi client.", "publie", now],
-    ["iot", "Capteur IoT vehicule", "Boitier connecte pour remonter les alertes moteur, documents et maintenance.", "brouillon", now],
+    ["accueil", "Garage connecte pour Dakar", "Diagnostic, entretien, documents et suivi voiture depuis un seul espace.", "publie", now],
+    ["services", "Services atelier", "Vidange, diagnostic, assurance, visite technique, reception et suivi client.", "publie", now],
+    ["iot", "Boitier connecte vehicule", "Boitier connecte pour remonter les alertes moteur, documents et maintenance.", "brouillon", now],
   ].forEach((page) => insertPage.run(...page));
 
   const insertService = db.prepare(
     "INSERT OR IGNORE INTO service_catalog_items (id, title, description, price_label, status, sort_order, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
   [
-    ["svc-diagnostic", "Diagnostic intelligent", "Lecture OBD-II, interpretation claire et recommandation atelier.", "Sur devis", "publie", 1, now],
+    ["svc-diagnostic", "Diagnostic intelligent", "Lecture boitier, interpretation claire et recommandation atelier.", "Sur devis", "publie", 1, now],
     ["svc-vidange", "Vidange suivie", "Rappel kilometrage, huile, filtres et historique dans le carnet client.", "A partir de 25 000 F", "publie", 2, now],
     ["svc-visite", "Visite technique", "Preparation, controle securite et rappel avant echeance.", "Forfait atelier", "publie", 3, now],
     ["svc-assurance", "Assurance", "Suivi echeance, relance client et coffre documentaire.", "Selon contrat", "publie", 4, now],
-    ["svc-iot", "Boitier IoT", "Installation et supervision de signaux vehicule en temps reel.", "Abonnement", "brouillon", 5, now],
+    ["svc-iot", "Boitier connecte", "Installation et supervision de signaux vehicule en temps reel.", "Abonnement", "brouillon", 5, now],
   ].forEach((service) => insertService.run(...service));
 }
 
@@ -758,7 +758,7 @@ function getDeviceContext(db: Database, payload: TelemetryPayload) {
 
   return {
     deviceId: "dev-003",
-    serial: "DASN-IOT-0194",
+    serial: "DASN-0194",
     vehicleId: "v-003",
     vehicle: "BMW 320i",
     client: "Ibrahima Sarr",
@@ -1065,7 +1065,7 @@ export function ingestTelemetryInDb(payload: TelemetryPayload) {
   const db = getDatabase();
   const now = new Date();
   const context = getDeviceContext(db, payload);
-  const metric = payload.metric || (payload.code ? "DTC actifs" : "Temperature moteur");
+  const metric = payload.metric || (payload.code ? "Defauts moteur" : "Temperature moteur");
   const value = payload.value || payload.code || "104 C";
   const severity = payload.status || (payload.code ? "blocked" : "watch");
   const id = signalId(context.vehicleId, metric);
@@ -1365,7 +1365,7 @@ export function runClientPortalActionInDb(clientId = "c-001", payload: ClientPor
       alertId,
       vehicle.id,
       "scan_request",
-      safeText(payload.reason, "Demande de scan OBD-II"),
+      safeText(payload.reason, "Demande de lecture boitier"),
       dueIso,
       "watch",
       "Client"
@@ -1380,7 +1380,7 @@ export function runClientPortalActionInDb(clientId = "c-001", payload: ClientPor
       workOrderId,
       vehicle.id,
       slotTime,
-      "Diagnostic OBD-II (demande client)",
+      "Diagnostic boitier (demande client)",
       "planifie",
       0
     );
@@ -1400,10 +1400,10 @@ export function runClientPortalActionInDb(clientId = "c-001", payload: ClientPor
       null
     );
 
-    auditEvent(db, `client:${clientId}`, "request_scan", "alert", alertId, "Diagnostic OBD-II demande depuis le carnet");
+    auditEvent(db, `client:${clientId}`, "request_scan", "alert", alertId, "Diagnostic boitier demande depuis le carnet");
 
     return {
-      message: "Demande de scan envoyee. L'atelier vous recontacte pour confirmer le creneau.",
+      message: "Demande de verification envoyee. L'atelier vous recontacte pour confirmer le creneau.",
       recordId: alertId,
       portal: getClientPortalFromDb(clientId),
     };
@@ -1920,8 +1920,8 @@ export function getAtelierClientsListFromDb() {
 }
 
 /* ────────────────────────────────────────────────────────────────────────
- * INSTALLATION FLOW — atelier installs the IoT kit on a vehicle and
- * provisions the matching client account. This is the only legitimate
+ * INSTALLATION FLOW — atelier connects the vehicle box and opens
+ * the matching client account. This is the only legitimate
  * onboarding path: the public site never creates accounts.
  * ──────────────────────────────────────────────────────────────────── */
 
@@ -1993,7 +1993,7 @@ export function createInstallationInDb(payload: InstallationPayload): Installati
   const technician = payload.technicianId ?? "atelier";
 
   if (!payload.dongleSerial || payload.dongleSerial.trim().length < 4) {
-    throw new Error("Numéro de série dongle invalide.");
+    throw new Error("Numéro du boîtier invalide.");
   }
   const serial = payload.dongleSerial.trim().toUpperCase();
 
@@ -2001,7 +2001,7 @@ export function createInstallationInDb(payload: InstallationPayload): Installati
     .prepare<{ id: string }>("SELECT id FROM iot_devices WHERE serial = ? LIMIT 1")
     .get(serial);
   if (serialClash) {
-    throw new Error(`Le dongle ${serial} est déjà associé à un véhicule.`);
+    throw new Error(`Le boîtier ${serial} est déjà associé à un véhicule.`);
   }
 
   // ── 1. Resolve client ────────────────────────────────────────────────
@@ -2079,7 +2079,7 @@ export function createInstallationInDb(payload: InstallationPayload): Installati
     vehicleRow = { id: vehicleId, brand, model, plate };
   }
 
-  // ── 3. Provision IoT device ─────────────────────────────────────────
+  // ── 3. Register connected vehicle box ───────────────────────────────
   const deviceId = slugId("dev");
   db.prepare(
     "INSERT INTO iot_devices (id, vehicle_id, serial, status, installed_at, last_seen) VALUES (?, ?, ?, ?, ?, ?)"
@@ -2095,7 +2095,7 @@ export function createInstallationInDb(payload: InstallationPayload): Installati
     [signalId(vehicleId, "moteur"), vehicleId, deviceId, "Moteur", "stable", "ok", nowIso],
   ].forEach((row) => insertSignal.run(...(row as [string, string, string, string, string, string, string])));
 
-  // ── 4. Provision the client user account ────────────────────────────
+  // ── 4. Open the client user account ─────────────────────────────────
   // Reuse the client user if one already exists for this client; otherwise
   // create a new one. Either way we issue a fresh password.
   type UserHit = { id: string; email: string };

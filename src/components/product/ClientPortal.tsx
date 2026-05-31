@@ -100,6 +100,38 @@ function formatMoney(value?: number) {
   return `${(value ?? 0).toLocaleString("fr-FR")} F`;
 }
 
+function daysUntil(dateString?: string) {
+  if (!dateString) return null;
+  const due = new Date(dateString);
+  if (Number.isNaN(due.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  return Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
+}
+
+function reminderToneFromDays(days: number | null): DriverIntelligence["tone"] {
+  if (days === null) return "watch";
+  if (days < 0) return "blocked";
+  if (days <= 10) return "urgent";
+  if (days <= 30) return "watch";
+  return "ok";
+}
+
+function reminderToneFromKm(kmLeft: number): DriverIntelligence["tone"] {
+  if (kmLeft <= 0) return "blocked";
+  if (kmLeft <= 500) return "urgent";
+  if (kmLeft <= 1500) return "watch";
+  return "ok";
+}
+
+function toneColor(tone: DriverIntelligence["tone"]) {
+  if (tone === "blocked") return "var(--color-danger)";
+  if (tone === "urgent") return "var(--color-accent)";
+  if (tone === "watch") return "var(--color-warn)";
+  return "var(--color-success)";
+}
+
 function readableAlertSource(alert: PortalAlert) {
   if (alert.type === "vidange") return "Suivi entretien";
   if (alert.type === "visite_technique") return "Rappel visite technique";
@@ -133,7 +165,7 @@ function buildQuickActions(
   return [
     {
       id: "request_scan",
-      label: "Demander un scan",
+      label: "Demander une vérification",
       status: "boîtier",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -167,7 +199,7 @@ function buildQuickActions(
     {
       id: "call_atelier",
       label: "Appeler l'atelier",
-      status: "support 24/7",
+      status: "réponse atelier",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -193,7 +225,7 @@ function buildQuickActions(
     {
       id: "locate",
       label: "Localiser",
-      status: "GPS atelier",
+      status: "position voiture",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
@@ -334,7 +366,7 @@ function buildDriverIntelligence({
       verdict: "Atelier recommandé",
       headline: "Vous pouvez vous déplacer prudemment, mais le véhicule doit être contrôlé.",
       cause,
-      action: "Demandez un scan atelier ou prenez rendez-vous dans la journée.",
+      action: "Demandez une vérification atelier ou prenez rendez-vous dans la journée.",
       evidence: [
         `${alerts.length} alerte(s) à traiter`,
         `Score santé ${healthScore}/100`,
@@ -474,7 +506,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
                 Sa oto · en direct
               </p>
               <h2 className="mt-3 font-display text-3xl font-light leading-[1.05] tracking-[-0.035em] md:text-4xl">
-                Asalaa malekum, {clientName.split(" ")[0]}.
+                Bonjour {clientName.split(" ")[0]}.
                 <span className="ml-2 italic font-display-italic text-[var(--color-fg-muted)]">Voici ta {vehicleLabel}.</span>
               </h2>
             </div>
@@ -488,6 +520,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
             </span>
           </header>
           <DiagnosticDecisionCard intelligence={intelligence} />
+          <PriorityReminders vehicle={vehicle} />
           <CockpitHero
             brand={vehicle?.brand ?? "Voiture"}
             model={vehicle?.model ?? "connectée"}
@@ -805,14 +838,72 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
   );
 }
 
+function PriorityReminders({ vehicle }: { vehicle?: PortalVehicle }) {
+  const mileage = vehicle?.mileage ?? 0;
+  const oilDue = vehicle?.oilDueKm ?? 0;
+  const kmLeft = oilDue > 0 ? oilDue - mileage : 0;
+  const insuranceDays = daysUntil(vehicle?.insuranceDue);
+  const inspectionDays = daysUntil(vehicle?.inspectionDue);
+
+  const cards = [
+    {
+      label: "Vidange",
+      value: kmLeft > 0 ? `${kmLeft.toLocaleString("fr-FR")} km` : "à faire",
+      detail: "Avant que l'huile fatigue le moteur.",
+      tone: reminderToneFromKm(kmLeft),
+    },
+    {
+      label: "Assurance",
+      value: insuranceDays === null ? "à renseigner" : insuranceDays < 0 ? `${Math.abs(insuranceDays)} j retard` : `${insuranceDays} j`,
+      detail: "Pour éviter contravention et immobilisation.",
+      tone: reminderToneFromDays(insuranceDays),
+    },
+    {
+      label: "Visite technique",
+      value: inspectionDays === null ? "à renseigner" : inspectionDays < 0 ? `${Math.abs(inspectionDays)} j retard` : `${inspectionDays} j`,
+      detail: "Rappel utile avant déplacement ou contrôle.",
+      tone: reminderToneFromDays(inspectionDays),
+    },
+  ] as const;
+
+  return (
+    <section className="mb-4 grid gap-2 sm:grid-cols-3" aria-label="Rappels importants du véhicule">
+      {cards.map((card) => {
+        const color = toneColor(card.tone);
+        return (
+          <article
+            key={card.label}
+            className="rounded-[16px] border bg-white p-4 shadow-[0_12px_38px_color-mix(in_srgb,var(--color-fg)_6%,transparent)]"
+            style={{ borderColor: `color-mix(in srgb, ${color} 32%, var(--color-border))` }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+                  À ne pas rater
+                </p>
+                <h3 className="mt-1 text-sm font-black text-[var(--color-fg)]">{card.label}</h3>
+              </div>
+              <span
+                className="size-2.5 rounded-full"
+                style={{
+                  background: color,
+                  boxShadow: `0 0 16px color-mix(in srgb, ${color} 54%, transparent)`,
+                }}
+              />
+            </div>
+            <p className="tabular mt-4 font-display text-2xl font-semibold leading-none tracking-[-0.03em]" style={{ color }}>
+              {card.value}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-[var(--color-fg-muted)]">{card.detail}</p>
+          </article>
+        );
+      })}
+    </section>
+  );
+}
+
 function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntelligence }) {
-  const colorByTone: Record<DriverIntelligence["tone"], string> = {
-    ok: "var(--color-success)",
-    watch: "var(--color-warn)",
-    urgent: "var(--color-accent)",
-    blocked: "var(--color-danger)",
-  };
-  const color = colorByTone[intelligence.tone];
+  const color = toneColor(intelligence.tone);
   const driverSummary = [
     ["Ce que ça veut dire", intelligence.headline],
     ["Ce que tu fais maintenant", intelligence.action],
@@ -842,7 +933,7 @@ function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntellig
           </span>
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-              Diagnostic intelligent · décision conducteur
+              Décision simple conducteur
             </p>
             <h3 className="mt-1 font-display text-2xl font-semibold tracking-[-0.035em]" style={{ color }}>
               {intelligence.verdict}

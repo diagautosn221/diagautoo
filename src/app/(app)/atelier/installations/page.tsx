@@ -28,7 +28,7 @@ export default async function InstallationsPage() {
             Console
           </Link>
           <span className="text-[var(--color-fg-subtle)]">/</span>
-          <span className="text-[var(--color-fg)]">Installations kit IoT</span>
+          <span className="text-[var(--color-fg)]">Mises en service</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="hidden rounded-[10px] border border-[var(--color-border)] bg-white/60 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-muted)] md:inline-flex">
@@ -46,28 +46,28 @@ export default async function InstallationsPage() {
 
       <AtelierPageBand
         scene="install"
-        eyebrow="Onboarding · provisioning kit + compte client"
-        title="Installer un kit, ouvrir un carnet."
-        caption="Une seule action provisionne le boîtier OBD-II, crée le compte client si nécessaire et génère un mot de passe à transmettre au propriétaire."
+        eyebrow="Mise en service · compte client"
+        title="Connecter une voiture, ouvrir son carnet."
+        caption="Depuis l'atelier, créez le compte du client, rattachez son véhicule et remettez-lui ses accès personnels sans exposer les données techniques."
         chips={[
-          { label: "kits cette semaine", value: String(recent.length) },
+          { label: "installations", value: String(recent.length) },
           { label: "délai install", value: "≈ 8 min" },
-          { label: "support", value: "24/7" },
+          { label: "remise accès", value: "1 fois" },
         ]}
       />
 
       <div className="container-tight">
         <header className="mb-8 sr-only">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            Onboarding · provisioning kit + compte client
+            Mise en service · compte client
           </p>
           <h1 className="mt-3 font-display text-3xl font-semibold leading-[1.05] tracking-[-0.04em] md:text-4xl">
-            Installer un kit, ouvrir un carnet.
+            Connecter une voiture, ouvrir son carnet.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">
-            Une seule action provisionne le boîtier OBD-II, crée le compte client
-            si nécessaire et génère un mot de passe à transmettre au propriétaire.
-            Les identifiants sont affichés une seule fois — copiez-les avant de
+            Depuis l'atelier, créez le compte du client, rattachez son véhicule
+            et générez un mot de passe à transmettre au propriétaire. Les
+            identifiants sont affichés une seule fois — copiez-les avant de
             quitter la page.
           </p>
         </header>

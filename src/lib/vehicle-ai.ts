@@ -114,7 +114,7 @@ export function analyzeVehicleEvidence(payload: VehicleAiPayload): VehicleAiResu
   const checklist = unique([
     "Comparer la photo avec la carte grise et la plaque.",
     "Scanner le VIN sur chassis ou pare-brise avant creation du dossier.",
-    "Lancer un scan OBD-II si un voyant, une fumee ou une chauffe est mentionnee.",
+    "Lancer une lecture du boitier si un voyant, une fumee ou une chauffe est mentionnee.",
     ...(source.includes("vidange") ? ["Verifier le dernier kilometrage de vidange et le filtre a huile."] : []),
     ...(source.includes("assurance") ? ["Controler la date d'assurance et joindre le document au carnet client."] : []),
     ...(source.includes("visite") || source.includes("controle technique")
@@ -134,7 +134,7 @@ export function analyzeVehicleEvidence(payload: VehicleAiPayload): VehicleAiResu
 
   const recommendedNextStep =
     riskLevel === "urgent"
-      ? "Bloquer le vehicule en reception rapide, ouvrir un diagnostic atelier et demander une lecture OBD-II."
+      ? "Bloquer le vehicule en reception rapide, ouvrir un diagnostic atelier et demander une lecture du boitier."
       : riskLevel === "surveillance"
         ? "Creer le dossier client, verifier les dates et programmer les rappels avant echeance."
         : "Completer les photos, confirmer le VIN puis rattacher le vehicule au compte client.";

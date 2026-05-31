@@ -38,7 +38,7 @@ export const installationPayloadSchema = schema({
     min: 4,
     max: 40,
     pattern: /^[A-Za-z0-9\-_.]+$/,
-    patternError: "Le serial ne doit contenir que A-Z, 0-9, - _ .",
+    patternError: "Le numéro du boîtier ne doit contenir que A-Z, 0-9, - _ .",
   }),
   technicianNote: fieldString({ optional: true, max: 240 }),
 });

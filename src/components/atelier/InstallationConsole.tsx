@@ -225,17 +225,25 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
           {/* Kit block */}
           <fieldset className="grid gap-3">
             <legend className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
-              Kit IoT
+              Boîtier connecté
             </legend>
             <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
               <Field
                 name="dongleSerial"
-                label="Numéro de série dongle"
-                placeholder="DASN-IOT-0421"
+                label="Numéro du boîtier"
+                placeholder="DASN-0421"
                 required
               />
-              <Field name="technicianNote" label="Note technicien (optionnel)" placeholder="Notes d'installation" />
+              <Field
+                name="technicianNote"
+                label="Note atelier (optionnel)"
+                placeholder="Pose sous tableau de bord, client briefé"
+              />
             </div>
+            <p className="rounded-[12px] border border-[var(--color-border)] bg-white/75 px-3 py-2 text-xs leading-5 text-[var(--color-fg-muted)]">
+              Ce numéro reste côté atelier. Le client voit seulement que sa voiture est connectée
+              et que son carnet personnel est prêt.
+            </p>
           </fieldset>
 
           {error && (
@@ -253,10 +261,10 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
               disabled={busy}
               className="inline-flex min-h-12 items-center justify-center rounded-[12px] bg-[var(--color-accent)] px-6 text-sm font-semibold text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px disabled:opacity-60"
             >
-              {busy ? "On installe…" : "Brancher le kit · ouvrir le carnet"}
+              {busy ? "Connexion en cours…" : "Connecter le boîtier · ouvrir le carnet"}
             </button>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-              Boîtier branché + compte créé + 3 mesures vitales · en 1 clic
+              Compte client + voiture connectée + premières alertes prêtes
             </p>
           </div>
         </form>
@@ -272,7 +280,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
               className="mt-7 rounded-[20px] border border-[var(--color-success)]/35 bg-[var(--color-success)]/8 p-5"
             >
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-success)]">
-                ✓ Carnet ouvert · jamm ak jamm · transmets ces identifiants (affichés une seule fois)
+                Carnet ouvert · accès prêts à remettre au client (affichés une seule fois)
               </p>
               <h3 className="mt-2 font-display text-xl font-semibold tracking-[-0.02em]">
                 {result.client.fullName} · {result.vehicle.brand} {result.vehicle.model} ({result.vehicle.plate})
@@ -293,7 +301,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
                 />
               </div>
               <div className="mt-4 grid gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-                <span>Dongle · {result.device.serial}</span>
+                <span>Boîtier connecté · {result.device.serial}</span>
                 <span>Véhicule · {result.vehicle.id}</span>
                 <span>Client · {result.client.id}</span>
               </div>
@@ -309,7 +317,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
                   onClick={reset}
                   className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[var(--color-border)] bg-white px-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-muted)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
                 >
-                  Brancher un autre kit
+                  Installer un autre boîtier
                 </button>
               </div>
             </motion.div>
@@ -323,12 +331,12 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
           Installations récentes
         </p>
         <h3 className="mt-1.5 font-display text-lg font-semibold tracking-[-0.02em]">
-          {recent.length} traces audit
+          {recent.length} installation{recent.length > 1 ? "s" : ""} enregistrée{recent.length > 1 ? "s" : ""}
         </h3>
         <ul className="mt-5 space-y-2">
           {recent.length === 0 && (
             <li className="text-sm text-[var(--color-fg-muted)]">
-              Aucune installation enregistrée. Provisionnez un kit pour ouvrir le carnet.
+              Aucune installation enregistrée. Connectez un boîtier pour ouvrir le carnet client.
             </li>
           )}
           {recent.map((row) => (
@@ -342,7 +350,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
           ))}
         </ul>
         <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-          Les mots de passe ne sont jamais journalisés.
+          Les mots de passe ne sont jamais conservés dans l'historique.
         </p>
       </aside>
     </div>

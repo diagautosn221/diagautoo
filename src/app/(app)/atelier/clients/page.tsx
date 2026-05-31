@@ -42,7 +42,7 @@ export default async function AtelierClientsPage() {
         scene="team"
         eyebrow="Annuaire client · vue atelier"
         title={`${clients.length} ${clients.length > 1 ? "clients équipés" : "client équipé"} suivis depuis Dakar.`}
-        caption="Drill-in sur n'importe quel client pour voir le même cockpit que lui — alertes, signaux IoT, historique."
+        caption="Ouvrez la fiche d'un client pour voir son cockpit privé : alertes, état de la voiture, documents et historique atelier."
         chips={[
           { label: "clients", value: String(clients.length) },
           {

@@ -8,8 +8,8 @@ const columns: Array<{
   {
     title: "Le service",
     links: [
-      { href: "/#pourquoi", label: "Pourquoi DiagAutoSN" },
-      { href: "/#histoire", label: "Compte client" },
+      { href: "/#services", label: "Services" },
+      { href: "/#preview", label: "Compte client" },
       { href: "/#preview", label: "Voir le carnet" },
       { href: "/#contact", label: "Nous joindre" },
     ],

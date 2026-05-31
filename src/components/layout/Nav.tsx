@@ -6,10 +6,8 @@ import { useState } from "react";
 import { Logomark } from "@/components/brand/Logomark";
 
 const links = [
-  { href: "#histoire", label: "Compte client" },
-  { href: "#pourquoi", label: "Pourquoi" },
-  { href: "#senegal", label: "Sénégal" },
-  { href: "#preview", label: "Aperçu" },
+  { href: "#services", label: "Services" },
+  { href: "#preview", label: "Compte client" },
   { href: "#contact", label: "Installer" },
 ];
 

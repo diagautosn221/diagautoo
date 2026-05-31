@@ -61,14 +61,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Votre voiture parle. Votre carnet écoute.
           </h2>
           <p className="mt-4 max-w-[44ch] text-sm leading-7 text-white/75">
-            Suivi temps réel des signaux IoT, alertes, documents et historique
-            atelier — au même endroit, pour vous et votre garagiste.
+            Suivi temps réel de la voiture, alertes, documents et historique
+            atelier au même endroit, pour vous et votre garagiste.
           </p>
 
           <div className="mt-7 grid grid-cols-3 gap-3 max-w-[420px]">
             {[
               ["Score", "santé"],
-              ["DTC", "détection"],
+              ["Panne", "détection"],
               ["Alertes", "live"],
             ].map(([t, s]) => (
               <div
@@ -102,9 +102,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Votre carnet vous attend.
           </h1>
           <p className="mt-4 text-sm leading-7 text-[var(--color-fg-muted)]">
-            Accès réservé aux clients équipés du kit IoT DiagAutoSN, à l'équipe
-            atelier et à l'administration. Identifiants fournis lors de
-            l'installation.
+            Accès réservé aux clients dont la voiture est équipée par DiagAutoSN,
+            à l'équipe atelier et à l'administration. Identifiants fournis lors
+            de la mise en service.
           </p>
 
           <LoginForm nextPath={params?.next ?? null} />

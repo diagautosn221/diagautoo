@@ -41,7 +41,7 @@ export const garageAlerts: GarageAlert[] = [
     client: "Awa Diop",
     due: "1 180 km restants",
     severity: "watch",
-    source: "kilometrage IoT + carnet atelier",
+    source: "kilométrage boîtier + carnet atelier",
   },
   {
     id: "al-vt-002",
@@ -71,7 +71,7 @@ export const garageAlerts: GarageAlert[] = [
     client: "Ibrahima Sarr",
     due: "atelier recommande",
     severity: "blocked",
-    source: "lecture OBD-II temps reel",
+    source: "lecture boîtier temps réel",
   },
 ];
 
@@ -109,7 +109,7 @@ export const garageSignals: GarageSignal[] = [
   {
     id: "sig-bat",
     vehicle: "Toyota Prado",
-    device: "DASN-IOT-0421",
+    device: "DASN-0421",
     metric: "Batterie",
     value: "12.6 V",
     status: "ok",
@@ -118,7 +118,7 @@ export const garageSignals: GarageSignal[] = [
   {
     id: "sig-temp",
     vehicle: "BMW 320i",
-    device: "DASN-IOT-0194",
+    device: "DASN-0194",
     metric: "Temperature moteur",
     value: "96 C",
     status: "watch",
@@ -127,8 +127,8 @@ export const garageSignals: GarageSignal[] = [
   {
     id: "sig-dtc",
     vehicle: "BMW 320i",
-    device: "DASN-IOT-0194",
-    metric: "DTC actifs",
+    device: "DASN-0194",
+    metric: "Défauts moteur",
     value: "P0420, U0121",
     status: "blocked",
     updatedAt: "14:31",
@@ -136,7 +136,7 @@ export const garageSignals: GarageSignal[] = [
   {
     id: "sig-gps",
     vehicle: "Hyundai Tucson",
-    device: "DASN-IOT-0882",
+    device: "DASN-0882",
     metric: "Derniere position",
     value: "Dakar Plateau",
     status: "ok",

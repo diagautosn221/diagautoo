@@ -4,30 +4,27 @@
 @import "../../tokens.css";
 
 @theme {
-  /* Warm cream canvas — "papier d'atelier", sand undertone */
-  --color-bg: oklch(0.974 0.012 70);
-  --color-bg-elevated: oklch(0.998 0.004 70);
-  --color-surface: oklch(0.948 0.014 60);
-  --color-surface-2: oklch(0.91 0.018 50);
-  --color-border: oklch(0.84 0.022 50);
-  --color-border-strong: oklch(0.32 0.04 40);
+  /* DiagAutoSN: white-dominant canvas, red control accents, black cockpit surfaces. */
+  --color-bg: oklch(0.995 0 0);
+  --color-bg-elevated: oklch(0.985 0.004 24);
+  --color-surface: oklch(0.965 0.006 24);
+  --color-surface-2: oklch(0.93 0.008 24);
+  --color-border: oklch(0.875 0.01 24);
+  --color-border-strong: oklch(0.30 0.02 24);
 
-  /* Ink black with warm undertone — not corporate grey */
-  --color-fg: oklch(0.14 0.012 40);
-  --color-fg-muted: oklch(0.40 0.018 40);
-  --color-fg-subtle: oklch(0.56 0.016 40);
+  --color-fg: oklch(0.125 0.01 24);
+  --color-fg-muted: oklch(0.38 0.012 24);
+  --color-fg-subtle: oklch(0.56 0.01 24);
 
-  /* Terra cotta deep red — Senegalese soil */
-  --color-accent: oklch(0.55 0.20 30);
-  --color-accent-soft: oklch(0.66 0.18 32);
+  --color-accent: oklch(0.57 0.23 28);
+  --color-accent-soft: oklch(0.66 0.20 28);
   --color-accent-ink: oklch(0.99 0.005 60);
 
-  /* Brushed brass — secondary accent for stamps and editorial flair */
-  --color-brass: oklch(0.74 0.13 75);
-  --color-brass-soft: oklch(0.82 0.10 78);
+  /* Kept for legacy components, visually mapped back into the red system. */
+  --color-brass: oklch(0.62 0.18 28);
+  --color-brass-soft: oklch(0.74 0.14 28);
 
-  /* Chartreuse punctuation — rare, only for critical live indicators */
-  --color-punch: oklch(0.92 0.20 115);
+  --color-punch: oklch(0.82 0.19 28);
 
   --color-warn: oklch(0.74 0.16 60);
   --color-danger: oklch(0.60 0.22 25);
@@ -75,9 +72,8 @@ body {
   min-height: 100dvh;
   overflow-x: clip;
   background:
-    radial-gradient(circle at 12% 6%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 24rem),
-    radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--color-fg) 5%, transparent), transparent 30rem),
-    linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-elevated) 52%, var(--color-bg) 100%);
+    radial-gradient(circle at 9% 0%, color-mix(in srgb, var(--color-accent) 7%, transparent), transparent 22rem),
+    linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-elevated) 58%, var(--color-bg) 100%);
 }
 
 body::before {
@@ -428,11 +424,11 @@ textarea:focus-visible {
   background: color-mix(in srgb, black 35%, transparent);
 }
 
-/* Warm paper background — kept, but more refined gradient */
+/* White command background with a restrained DiagAutoSN red wash. */
 .paper-warm {
   background:
-    radial-gradient(ellipse 90% 60% at 18% 0%, color-mix(in srgb, var(--color-brass) 10%, transparent), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 88% 100%, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 18% 0%, color-mix(in srgb, var(--color-accent) 7%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 88% 100%, color-mix(in srgb, var(--color-fg) 3%, transparent), transparent 55%),
     var(--color-bg);
 }
 

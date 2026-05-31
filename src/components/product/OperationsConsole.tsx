@@ -185,33 +185,33 @@ const tabs: Array<{ key: TabKey; label: string; caption: string }> = [
 ];
 
 const visualMarkers = [
-  { label: "OBD", x: "47%", y: "38%", tone: "bg-[var(--color-danger)]" },
+  { label: "moteur", x: "47%", y: "38%", tone: "bg-[var(--color-danger)]" },
   { label: "huile", x: "34%", y: "58%", tone: "bg-[var(--color-warn)]" },
-  { label: "gps", x: "65%", y: "50%", tone: "bg-[var(--color-success)]" },
+  { label: "position", x: "65%", y: "50%", tone: "bg-[var(--color-success)]" },
 ];
 
 const iotSamples = [
   {
-    deviceSerial: "DASN-IOT-0194",
-    metric: "DTC actifs",
-    value: "P0420, U0121",
+    deviceSerial: "DASN-0194",
+    metric: "Défaut moteur",
+    value: "à contrôler",
     status: "blocked",
     code: "P0420",
   },
   {
-    deviceSerial: "DASN-IOT-0421",
+    deviceSerial: "DASN-0421",
     metric: "Pression huile",
     value: "1.7 bar",
     status: "urgent",
   },
   {
-    deviceSerial: "DASN-IOT-0882",
+    deviceSerial: "DASN-0882",
     metric: "Alerte assurance",
     value: "8 jours",
     status: "urgent",
   },
   {
-    deviceSerial: "DASN-IOT-0742",
+    deviceSerial: "DASN-0742",
     metric: "Visite technique",
     value: "17 jours",
     status: "watch",
@@ -449,7 +449,7 @@ export function OperationsConsole() {
       setActiveTab("iot");
       setError(null);
     } catch {
-      setError("Le paquet IoT n'a pas pu etre enregistre.");
+      setError("Le signal du boîtier n'a pas pu être enregistré.");
     } finally {
       setIsSendingIot(false);
     }
@@ -552,7 +552,7 @@ export function OperationsConsole() {
           <TelemetryFeed
             entries={fleetFeed}
             rows={4}
-            title="Flux IoT temps réel · flotte connectée"
+            title="Flux boîtiers en temps réel · flotte connectée"
           />
         </div>
         <div className="mb-6 grid gap-5 xl:grid-cols-[0.86fr_1.14fr]">
@@ -989,7 +989,7 @@ export function OperationsConsole() {
                       <div className="hairline-card rounded-[22px] p-4">
                         <SectionHeader eyebrow="Ce que remontent les boîtiers" title="Voitures connectées" action={`${overview.signals.length} signaux`} />
                         <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-fg-muted)]">
-                          Les boitiers IoT remontent les anomalies moteur, les rappels vidange, assurance et visite technique pour le garage et le compte client.
+                          Les boîtiers connectés remontent les anomalies moteur, les rappels vidange, assurance et visite technique pour le garage et le compte client.
                         </p>
                       </div>
                       {liveIotEvents.length > 0 ? (
@@ -1294,7 +1294,7 @@ export function OperationsConsole() {
           disabled={isSendingIot}
           className="min-h-11 rounded-[14px] border border-[var(--color-border)] bg-white/[0.04] px-3 text-xs font-semibold active:translate-y-px disabled:opacity-60"
         >
-          IoT
+          Signal
         </button>
         <button
           type="button"
