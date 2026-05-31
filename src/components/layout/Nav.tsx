@@ -6,12 +6,11 @@ import { useState } from "react";
 import { Logomark } from "@/components/brand/Logomark";
 
 const links = [
-  { href: "#histoire", label: "Histoire" },
+  { href: "#histoire", label: "Compte client" },
   { href: "#pourquoi", label: "Pourquoi" },
-  { href: "#cas-reel", label: "Cas réel" },
   { href: "#senegal", label: "Sénégal" },
-  { href: "#teranga", label: "Téranga" },
-  { href: "#contact", label: "On démarre" },
+  { href: "#preview", label: "Aperçu" },
+  { href: "#contact", label: "Installer" },
 ];
 
 export function Nav() {
@@ -51,7 +50,7 @@ export function Nav() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`rounded-md px-3 py-2 text-sm transition-colors duration-200 ${
+                  className={`whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors duration-200 lg:px-3 ${
                     scrolled
                       ? "text-white/68 hover:bg-white/[0.08] hover:text-white"
                       : "text-[var(--color-fg-muted)] hover:bg-black/[0.04] hover:text-[var(--color-fg)]"

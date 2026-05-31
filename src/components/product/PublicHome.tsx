@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { LockedPreview } from "@/components/marketing/LockedPreview";
 import { LiveCockpitDemo } from "@/components/marketing/LiveCockpitDemo";
 import { BrandsStrip } from "@/components/marketing/BrandsStrip";
-import { getWorkshopPhoto, PEXELS } from "@/lib/photos";
+import { getWorkshopPhoto } from "@/lib/photos";
 
 type PublicHomeProps = {
   site: {
@@ -108,29 +108,6 @@ const senegalContext = [
     title: "Ton frère prend la voiture ? On suit.",
     text:
       "Si la voiture sert à toute la famille, le compte client garde l'historique, les rappels et les alertes au même endroit.",
-  },
-];
-
-const terangaPromises = [
-  {
-    hour: "Dakar",
-    label: "Installation guidée",
-    text: "On installe le kit, on crée le compte client et on explique l'application en wolof ou en français.",
-  },
-  {
-    hour: "WhatsApp",
-    label: "Suivi humain",
-    text: "Quand une alerte tombe, tu peux écrire au garage avec le bon contexte. Pas besoin de deviner.",
-  },
-  {
-    hour: "Wave · OM · cash",
-    label: "Paiement libre",
-    text: "Wave, Orange Money, espèces, virement. Tu paies comme ça t'arrange.",
-  },
-  {
-    hour: "Privé",
-    label: "Données protégées",
-    text: "La vitrine ne montre jamais les vraies plaques, VIN, kilomètres ou alertes clients.",
   },
 ];
 
@@ -265,27 +242,6 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      {/* ════════════════════ PROMESSE ════════════════════ */}
-      <section className="container-tight py-24 md:py-32">
-        <div className="hairline mb-20" />
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="kicker kicker-accent inline-flex">
-            Notre promesse
-          </p>
-          <h2 className="font-display mt-8 text-balance text-[clamp(2.5rem,6.5vw,5rem)] font-light leading-[1.0] tracking-[-0.035em]">
-            Donner à chaque voiture du Sénégal{" "}
-            <span className="font-display-italic text-[var(--color-accent)]">
-              l'occasion de durer.
-            </span>
-          </h2>
-          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-[var(--color-fg-muted)]">
-            Pas de produit miracle. Pas de promesse en l'air. Un boîtier
-            fiable, un carnet clair, une équipe joignable du matin au soir.
-            Comme à l'ancienne — mais dans ta poche.
-          </p>
-        </div>
-      </section>
-
       {/* ════════════════════ BRANDS MARQUEE ════════════════════ */}
       <BrandsStrip />
 
@@ -392,103 +348,12 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      {/* ════════════════════ SCÉNARIO CLIENT ANONYMISÉ ════════════════════ */}
-      <section id="cas-reel" className="relative overflow-hidden bg-[var(--color-fg)] py-28 text-white md:py-36">
-        <div className="container-tight">
-          <div className="mb-16 grid gap-8 md:grid-cols-12 md:items-end">
-            <div className="md:col-span-8">
-              <span className="editorial-num text-white/35">03</span>
-              <p className="mt-6 kicker kicker-ink inline-flex">
-                Scénario courant · aperçu anonymisé
-              </p>
-              <h2 className="font-display mt-8 text-balance text-[clamp(2.4rem,6vw,4.4rem)] font-light leading-[1.0] tracking-[-0.03em]">
-                La voiture prévient tôt.{" "}
-                <span className="font-display-italic text-[var(--color-brass-soft)]">
-                  Tu décides avant que la panne décide pour toi.
-                </span>
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid gap-12 md:grid-cols-12 md:items-stretch md:gap-16">
-            <figure className="grain-overlay grain-soft shadow-cinema relative isolate aspect-[4/5] overflow-hidden rounded-[24px] md:col-span-5">
-              <img
-                src={PEXELS.toolboard}
-                alt="Intervention atelier DiagAutoSN"
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-              />
-              <div className="hero-image-grading" aria-hidden />
-              <figcaption className="absolute inset-x-5 bottom-5 z-10">
-                <span className="kicker kicker-ink">
-                  Photo atelier · données client masquées
-                </span>
-              </figcaption>
-            </figure>
-
-            <div className="md:col-span-7">
-              <ol className="space-y-8 border-l border-[var(--color-brass)]/30 pl-8">
-                {[
-                  {
-                    when: "Signal détecté",
-                    text: <>Le boîtier remarque un comportement inhabituel : batterie faible, chauffe, huile ou voyant moteur. Sur ton téléphone, le message reste simple : <em className="text-white/85">« À vérifier. Voici quoi faire. »</em></>,
-                  },
-                  {
-                    when: "Garage prévenu",
-                    text: <>Si tu demandes de l'aide, l'atelier reçoit le contexte utile : véhicule, alerte, priorité, historique récent. Le diagnostic commence déjà mieux.</>,
-                  },
-                  {
-                    when: "Décision claire",
-                    text: <>Tu sais si tu peux rouler, surveiller ou passer à l'atelier. L'objectif : éviter les surprises, les dépenses inutiles et les longues journées sans voiture.</>,
-                  },
-                ].map((step) => (
-                  <li key={step.when}>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-brass-soft)]">
-                      {step.when}
-                    </p>
-                    <p className="font-display mt-3 text-xl font-light leading-[1.5] text-white md:text-2xl">
-                      {step.text}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-
-              <div className="mt-12 grid grid-cols-3 gap-6 border-t border-white/12 pt-10">
-                {[
-                  ["avant", "la panne"],
-                  ["clair", "pour le client"],
-                  ["utile", "pour l'atelier"],
-                ].map(([value, label]) => (
-                  <div key={label}>
-                    <div className="font-display tabular text-4xl font-light leading-none text-[var(--color-brass-soft)] md:text-5xl">
-                      {value}
-                    </div>
-                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <blockquote className="mt-12 border-l-2 border-[var(--color-accent)] pl-6">
-                <p className="font-display text-2xl font-light italic leading-snug text-white md:text-[1.75rem]">
-                  « Sur la page publique, on montre le principe. Dans le compte client, on montre la vraie voiture. »
-                </p>
-                <footer className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
-                  — règle produit DiagAutoSN · confidentialité par défaut
-                </footer>
-              </blockquote>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ════════════════════ SÉNÉGAL CONTEXT ════════════════════ */}
       <section id="senegal" className="container-tight py-24 md:py-32">
         <div className="hairline mb-20" />
         <div className="mb-16 grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
-            <span className="editorial-num">04</span>
+            <span className="editorial-num">03</span>
             <p className="mt-6 kicker kicker-accent inline-flex">
               Pensé pour rouler au Sénégal
             </p>
@@ -529,60 +394,11 @@ export function PublicHome({ site }: PublicHomeProps) {
         </div>
       </section>
 
-      {/* ════════════════════ TÉRANGA — SERVICE PROMISE ════════════════════ */}
-      <section id="teranga" className="container-tight py-24 md:py-32">
-        <div className="hairline mb-20" />
-        <div className="grid gap-12 md:grid-cols-12 md:gap-16">
-          <div className="md:col-span-5">
-            <span className="editorial-num">05</span>
-            <p className="mt-6 kicker kicker-accent inline-flex">
-              Téranga DiagAutoSN
-            </p>
-            <h2 className="font-display mt-8 text-balance text-[clamp(2.2rem,5vw,3.8rem)] font-light leading-[1.02] tracking-[-0.03em]">
-              Du matin au soir,{" "}
-              <span className="font-display-italic text-[var(--color-accent)]">
-                on roule avec toi.
-              </span>
-            </h2>
-            <p className="mt-8 text-base leading-8 text-[var(--color-fg-muted)]">
-              Pas une hotline qui te raccroche au nez. Pas un bot. Une vraie
-              équipe à Mermoz, joignable en wolof ou en français, qui connaît
-              sa oto.
-            </p>
-          </div>
-
-          <div className="md:col-span-7">
-            <div className="divide-y divide-[var(--color-border)] overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-soft">
-              {terangaPromises.map((row, i) => (
-                <motion.div
-                  key={row.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-10% 0px" }}
-                  transition={{ duration: 0.45, delay: i * 0.06 }}
-                  className="grid grid-cols-[1fr_2fr] items-center gap-6 px-6 py-6 md:px-8 md:py-8"
-                >
-                  <div>
-                    <p className="font-display text-2xl font-light leading-none text-[var(--color-accent)] md:text-3xl">
-                      {row.hour}
-                    </p>
-                    <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
-                      {row.label}
-                    </p>
-                  </div>
-                  <p className="text-base leading-7 text-[var(--color-fg)]">{row.text}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ════════════════════ APERÇU CARNET ════════════════════ */}
       <section id="preview" className="py-24 md:py-32">
         <div className="container-tight mb-16">
           <div className="hairline mb-20" />
-          <span className="editorial-num">06</span>
+          <span className="editorial-num">04</span>
           <p className="mt-6 kicker kicker-accent inline-flex">
             Aperçu carnet · loolu lañu ko def
           </p>
@@ -595,7 +411,7 @@ export function PublicHome({ site }: PublicHomeProps) {
         <div className="hairline mb-20" />
         <div className="grid gap-12 md:grid-cols-12 md:items-stretch md:gap-16">
           <div className="md:col-span-7">
-            <span className="editorial-num">07</span>
+            <span className="editorial-num">05</span>
             <p className="mt-6 kicker kicker-accent inline-flex">
               On démarre, wala ?
             </p>

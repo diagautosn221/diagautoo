@@ -9,7 +9,7 @@ const columns: Array<{
     title: "Le service",
     links: [
       { href: "/#pourquoi", label: "Pourquoi DiagAutoSN" },
-      { href: "/#what", label: "Ce qu'on fait" },
+      { href: "/#histoire", label: "Compte client" },
       { href: "/#preview", label: "Voir le carnet" },
       { href: "/#contact", label: "Nous joindre" },
     ],
@@ -25,9 +25,9 @@ const columns: Array<{
   {
     title: "Légal & confiance",
     links: [
-      { href: "/#contact", label: "Mentions légales" },
+      { href: "/#preview", label: "Aperçu anonymisé" },
       { href: "/#contact", label: "Confidentialité" },
-      { href: "/#contact", label: "Conditions" },
+      { href: "/#contact", label: "Données privées" },
     ],
   },
 ];
@@ -37,9 +37,9 @@ export function Footer() {
 
   return (
     <footer className="relative border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
-      <div className="container-tight grid gap-12 py-16 md:grid-cols-12 md:gap-10">
+      <div className="container-tight grid gap-12 py-16 md:grid-cols-2 md:gap-10 lg:grid-cols-12">
         {/* Brand block */}
-        <div className="md:col-span-5">
+        <div className="md:col-span-2 lg:col-span-5">
           <Logomark size={32} />
 
 
@@ -54,15 +54,15 @@ export function Footer() {
           <div className="mt-6 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
             <span>Wave · OM · cash</span>
             <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-            <span>WhatsApp 24h</span>
+            <span>WhatsApp atelier</span>
             <span className="size-1 rounded-full bg-[var(--color-fg-subtle)]" />
-            <span>Sans engagement</span>
+            <span>Données privées</span>
           </div>
         </div>
 
         {/* Link columns */}
         {columns.map((col) => (
-          <div key={col.title} className="md:col-span-2">
+          <div key={col.title} className="lg:col-span-2">
             <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
               {col.title}
             </h4>
@@ -82,7 +82,7 @@ export function Footer() {
         ))}
 
         {/* Contact column */}
-        <div className="md:col-span-1">
+        <div className="lg:col-span-1">
           <h4 className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
             Direct
           </h4>
@@ -123,7 +123,7 @@ export function Footer() {
           <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
             <span className="flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-[var(--color-success)] live-dot" />
-              Atelier Mermoz · jamm ak jamm · 24/7
+              Atelier Mermoz · jamm ak jamm
             </span>
           </div>
         </div>
