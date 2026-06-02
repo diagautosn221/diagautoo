@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AdminConsole, type AdminCmsData } from "@/components/product/AdminConsole";
-import { getAdminCmsFromDb } from "@/lib/db/diagauto";
+import {
+  AdminConsole,
+  type AdminCmsData,
+  type AdminOverviewData,
+} from "@/components/product/AdminConsole";
+import { getAdminCmsFromDb, getGarageOverviewFromDb } from "@/lib/db/diagauto";
 import { getSession } from "@/lib/auth/getSession";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 
@@ -16,6 +20,7 @@ export default async function AdminPage() {
   }
 
   const cms = JSON.parse(JSON.stringify(getAdminCmsFromDb())) as AdminCmsData;
+  const overview = JSON.parse(JSON.stringify(getGarageOverviewFromDb())) as AdminOverviewData;
 
   return (
     <>
@@ -41,7 +46,7 @@ export default async function AdminPage() {
           </div>
         </div>
       </div>
-      <AdminConsole initialCms={cms} />
+      <AdminConsole initialCms={cms} initialOverview={overview} />
     </>
   );
 }
