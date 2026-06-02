@@ -1,6 +1,8 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { CockpitHero } from "@/components/carnet/CockpitHero";
 import { QuickActionsDock, type QuickAction } from "@/components/carnet/QuickActionsDock";
@@ -88,6 +90,14 @@ type DriverIntelligence = {
   action: string;
   evidence: string[];
 };
+
+type ClientTab = "essentiel" | "voiture" | "compte";
+
+const clientTabs: Array<{ key: ClientTab; label: string; caption: string }> = [
+  { key: "essentiel", label: "Essentiel", caption: "quoi faire" },
+  { key: "voiture", label: "Voiture", caption: "détails" },
+  { key: "compte", label: "Compte", caption: "papiers" },
+];
 
 function severityClass(severity?: string) {
   if (severity === "blocked") return "border-[var(--color-danger)]/45 bg-[var(--color-danger)]/12 text-[var(--color-danger)]";
@@ -424,6 +434,10 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("vue");
+  const activeTab: ClientTab =
+    tabParam === "voiture" || tabParam === "compte" ? tabParam : "essentiel";
   const vehicle = portal.vehicles[0];
   const clientName = portal.client?.full_name || "Votre compte";
   const vehicleLabel = vehicle ? `${vehicle.brand || "Voiture"} ${vehicle.model || "connectée"}` : "Votre voiture";
@@ -495,17 +509,18 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
     : isFetching
     ? "synchro · …"
     : "synchro · attente";
+  const quickActions = buildQuickActions(runClientAction, busyAction !== null, vehicle?.id);
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden py-8">
+    <main className="min-h-[100dvh] overflow-hidden py-5 md:py-8">
       <div className="container-tight">
-        <section className="mb-6">
+        <section className="mb-4">
           <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-accent)]">
                 Sa oto · en direct
               </p>
-              <h2 className="mt-3 font-display text-3xl font-light leading-[1.05] tracking-[-0.035em] md:text-4xl">
+              <h2 className="mt-2 font-display text-2xl font-light leading-[1.05] tracking-[-0.02em] md:text-4xl">
                 Bonjour {clientName.split(" ")[0]}.
                 <span className="ml-2 italic font-display-italic text-[var(--color-fg-muted)]">Voici ta {vehicleLabel}.</span>
               </h2>
@@ -521,32 +536,59 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
           </header>
           <DiagnosticDecisionCard intelligence={intelligence} />
           <PriorityReminders vehicle={vehicle} />
-          <CockpitHero
-            brand={vehicle?.brand ?? "Voiture"}
-            model={vehicle?.model ?? "connectée"}
-            vehicleLabel={vehicleLabel}
-            plate={vehicle?.plate}
-            mileage={vehicle?.mileage ?? 0}
-            healthScore={vehicle?.healthScore ?? 78}
-            oilDueKm={vehicle?.oilDueKm}
-            lastServiceKm={lastServiceKm}
-            insuranceDue={vehicle?.insuranceDue}
-            inspectionDue={vehicle?.inspectionDue}
-            signals={liveSignals}
-            alerts={liveAlerts}
-            deviceSerial={deviceSerial}
-            lastSeen={deviceLastSeen}
-          />
         </section>
 
-        <section className="mb-6">
-          <QuickActionsDock
-            title="Actions rapides · carnet"
-            actions={buildQuickActions(runClientAction, busyAction !== null, vehicle?.id)}
-          />
+        <section className="panel mb-4 rounded-[18px] p-2">
+          <div className="grid grid-cols-3 gap-2">
+            {clientTabs.map((tab) => (
+              <Link
+                key={tab.key}
+                href={tab.key === "essentiel" ? "/carnet" : `/carnet?vue=${tab.key}`}
+                aria-current={activeTab === tab.key ? "page" : undefined}
+                className={`rounded-[14px] border px-2 py-3 text-left transition active:translate-y-px ${
+                  activeTab === tab.key
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent-ink)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-fg)]"
+                }`}
+                >
+                <span className="block text-xs font-black leading-none">{tab.label}</span>
+                <span className="mt-1 block font-mono text-[8px] uppercase opacity-65">{tab.caption}</span>
+              </Link>
+            ))}
+          </div>
         </section>
 
-        <section className="mb-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        {activeTab === "essentiel" ? (
+          <section className="mb-4">
+            <QuickActionsDock
+              title="Actions rapides · carnet"
+              actions={quickActions.slice(0, 4)}
+            />
+          </section>
+        ) : null}
+
+        {activeTab === "voiture" ? (
+          <section className="max-h-[640px] overflow-y-auto rounded-[22px] pr-1 lg:max-h-none lg:overflow-visible lg:pr-0">
+            <div className="mb-4">
+              <CockpitHero
+                brand={vehicle?.brand ?? "Voiture"}
+                model={vehicle?.model ?? "connectée"}
+                vehicleLabel={vehicleLabel}
+                plate={vehicle?.plate}
+                mileage={vehicle?.mileage ?? 0}
+                healthScore={vehicle?.healthScore ?? 78}
+                oilDueKm={vehicle?.oilDueKm}
+                lastServiceKm={lastServiceKm}
+                insuranceDue={vehicle?.insuranceDue}
+                inspectionDue={vehicle?.inspectionDue}
+                signals={liveSignals}
+                alerts={liveAlerts}
+                deviceSerial={deviceSerial}
+                lastSeen={deviceLastSeen}
+              />
+            </div>
+
+            <section className="mb-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <MaintenanceTimeline
             entries={buildTimelineEntries(portal)}
             title="Carnet de bord · interventions & alertes"
@@ -591,7 +633,11 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
             </ul>
           </div>
         </section>
-        <section className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+          </section>
+        ) : null}
+
+        {activeTab === "compte" ? (
+        <section className="grid max-h-[640px] gap-5 overflow-y-auto rounded-[22px] pr-1 lg:grid-cols-[0.72fr_1.28fr] lg:max-h-none lg:overflow-visible lg:pr-0">
           <div className="panel rounded-[24px] p-5 md:p-6">
             <PortalSectionHeader eyebrow="Tes infos" title="Mon compte" count="privé" />
 
@@ -833,6 +879,7 @@ export function ClientPortal({ initialPortal }: { initialPortal: ClientPortalDat
             </section>
           </div>
         </section>
+        ) : null}
       </div>
     </main>
   );
@@ -867,34 +914,34 @@ function PriorityReminders({ vehicle }: { vehicle?: PortalVehicle }) {
   ] as const;
 
   return (
-    <section className="mb-4 grid gap-2 sm:grid-cols-3" aria-label="Rappels importants du véhicule">
+    <section className="mb-3 grid grid-cols-3 gap-2" aria-label="Rappels importants du véhicule">
       {cards.map((card) => {
         const color = toneColor(card.tone);
         return (
           <article
             key={card.label}
-            className="rounded-[16px] border bg-white p-4 shadow-[0_12px_38px_color-mix(in_srgb,var(--color-fg)_6%,transparent)]"
+            className="rounded-[14px] border bg-white p-3 shadow-[0_12px_38px_color-mix(in_srgb,var(--color-fg)_6%,transparent)]"
             style={{ borderColor: `color-mix(in srgb, ${color} 32%, var(--color-border))` }}
           >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)]">
+                <p className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)] sm:block">
                   À ne pas rater
                 </p>
-                <h3 className="mt-1 text-sm font-black text-[var(--color-fg)]">{card.label}</h3>
+                <h3 className="text-[11px] font-black leading-tight text-[var(--color-fg)] sm:mt-1 sm:text-sm">{card.label}</h3>
               </div>
               <span
-                className="size-2.5 rounded-full"
+                className="size-2 rounded-full sm:size-2.5"
                 style={{
                   background: color,
                   boxShadow: `0 0 16px color-mix(in srgb, ${color} 54%, transparent)`,
                 }}
               />
             </div>
-            <p className="tabular mt-4 font-display text-2xl font-semibold leading-none tracking-[-0.03em]" style={{ color }}>
+            <p className="tabular mt-3 font-display text-lg font-semibold leading-none sm:text-2xl" style={{ color }}>
               {card.value}
             </p>
-            <p className="mt-2 text-xs leading-5 text-[var(--color-fg-muted)]">{card.detail}</p>
+            <p className="mt-2 hidden text-xs leading-5 text-[var(--color-fg-muted)] sm:block">{card.detail}</p>
           </article>
         );
       })}
@@ -904,19 +951,14 @@ function PriorityReminders({ vehicle }: { vehicle?: PortalVehicle }) {
 
 function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntelligence }) {
   const color = toneColor(intelligence.tone);
-  const driverSummary = [
-    ["Ce que ça veut dire", intelligence.headline],
-    ["Ce que tu fais maintenant", intelligence.action],
-    ["Ce que le garage reçoit", "Un résumé clair de l'alerte, sans te faire répéter toute l'histoire."],
-  ];
 
   return (
     <section
-      className="mb-4 overflow-hidden rounded-[20px] border bg-white p-4 shadow-[0_18px_60px_color-mix(in_srgb,var(--color-fg)_8%,transparent)] md:p-5"
+      className="mb-3 overflow-hidden rounded-[20px] border bg-white p-4 shadow-[0_18px_60px_color-mix(in_srgb,var(--color-fg)_8%,transparent)] md:p-5"
       style={{ borderColor: `color-mix(in srgb, ${color} 34%, var(--color-border))` }}
       aria-label="Diagnostic intelligent conducteur"
     >
-      <div className="grid gap-4 md:grid-cols-[0.84fr_1.16fr] md:items-center">
+      <div className="grid gap-3 md:grid-cols-[0.84fr_1.16fr] md:items-center">
         <div className="flex items-center gap-3">
           <span
             className="grid size-12 shrink-0 place-items-center rounded-[14px] border"
@@ -941,7 +983,7 @@ function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntellig
           </div>
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <p className="text-sm font-semibold leading-6 text-[var(--color-fg)]">{intelligence.headline}</p>
           <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
@@ -964,21 +1006,6 @@ function DiagnosticDecisionCard({ intelligence }: { intelligence: DriverIntellig
           <p className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm font-semibold text-[var(--color-fg)]">
             {intelligence.action}
           </p>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {driverSummary.map(([label, text]) => (
-              <div
-                key={label}
-                className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)]/70 p-3"
-              >
-                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
-                  {label}
-                </p>
-                <p className="mt-2 text-xs leading-5 text-[var(--color-fg-muted)]">
-                  {text}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>

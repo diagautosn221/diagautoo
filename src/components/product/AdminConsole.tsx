@@ -165,17 +165,20 @@ function readable(value?: string | null) {
   return (value ?? "")
     .replace(/OBD-II/gi, "boîtier")
     .replace(/\bDTC\b/gi, "défaut")
+    .replace(/DASN-IOT-\d+/gi, "capteur connecté")
     .replace(/temps reel/gi, "temps réel")
     .replace(/vehicule/gi, "véhicule")
-    .replace(/controle/gi, "contrôle");
+    .replace(/controle/gi, "contrôle")
+    .replace(/immediat/gi, "immédiat")
+    .replace(/recommande/gi, "recommandé");
 }
 
 function StatTile({ label, value, caption }: { label: string; value: string | number; caption: string }) {
   return (
-    <div className="metric-slab rounded-[18px] p-4">
-      <div className="tabular font-mono text-2xl font-black text-[var(--color-fg)]">{value}</div>
-      <div className="mt-2 font-mono text-[10px] uppercase text-[var(--color-fg-subtle)]">{label}</div>
-      <p className="mt-2 text-xs leading-5 text-[var(--color-fg-muted)]">{caption}</p>
+    <div className="metric-slab min-w-0 rounded-[16px] p-3 md:p-4">
+      <div className="tabular break-words font-mono text-xl font-black text-[var(--color-fg)] md:text-2xl">{value}</div>
+      <div className="mt-1 font-mono text-[9px] uppercase text-[var(--color-fg-subtle)] md:mt-2 md:text-[10px]">{label}</div>
+      <p className="mt-2 hidden text-xs leading-5 text-[var(--color-fg-muted)] sm:block">{caption}</p>
     </div>
   );
 }
@@ -231,14 +234,14 @@ export function AdminConsole({
     const backlogCount =
       urgentAlerts.length + dueDocuments.length + pendingNotifications.length + draftServices.length;
     const priorityItems: DigestPriority[] = [
-      ...urgentAlerts.slice(0, 3).map((alert) => ({
+      ...urgentAlerts.slice(0, 2).map((alert) => ({
         id: alert.id,
         tone: toneForSeverity(alert.severity),
         meta: niceStatus(alert.severity),
         title: `${readable(alert.label)} - ${readable(alert.vehicle)}`,
         detail: `${readable(alert.client)} · ${readable(alert.due)} · ${readable(alert.source)}`,
       })),
-      ...dueDocuments.slice(0, 2).map((document) => ({
+      ...dueDocuments.slice(0, 1).map((document) => ({
         id: document.id,
         tone: toneForSeverity(document.status === "urgent" ? "urgent" : "watch"),
         meta: niceStatus(document.status),
@@ -326,11 +329,11 @@ export function AdminConsole({
             <h1 className="mt-5 max-w-[12ch] text-balance font-display text-5xl font-black leading-[0.88] md:text-6xl">
               Le garage en une minute.
             </h1>
-            <p className="mt-5 text-sm leading-7 text-[var(--color-fg-muted)]">
-              Cette vue est pour l'admin : peu de bruit, les décisions en haut,
-              le CMS et les accès derrière un onglet.
-            </p>
-            <div className="mt-6 grid gap-2">
+              <p className="mt-4 hidden text-sm leading-7 text-[var(--color-fg-muted)] sm:block">
+                Cette vue est pour l'admin : peu de bruit, les décisions en haut,
+                le CMS et les accès derrière un onglet.
+              </p>
+            <div className="mt-5 grid gap-2">
               <Link
                 href="/atelier"
                 className="inline-flex min-h-11 items-center justify-center rounded-[14px] bg-[var(--color-accent)] px-4 text-sm font-black text-[var(--color-accent-ink)] transition hover:bg-[var(--color-accent-soft)] active:translate-y-px"
@@ -345,7 +348,7 @@ export function AdminConsole({
               </Link>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-2">
+            <div className="mt-5 grid grid-cols-4 gap-2">
               <StatTile label="clients" value={initialOverview.summary.clients} caption="comptes suivis" />
               <StatTile label="véhicules" value={initialOverview.summary.vehicles} caption="carnets actifs" />
               <StatTile label="boîtiers" value={initialOverview.summary.connectedDevices} caption="connectés" />
@@ -377,7 +380,7 @@ export function AdminConsole({
 
             {activeTab === "digest" ? (
               <section className="grid gap-4">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
                   <StatTile
                     label="atelier"
                     value={initialOverview.summary.openWorkOrders}

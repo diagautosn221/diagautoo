@@ -8,6 +8,11 @@ import { AtelierPageBand } from "@/components/atelier/AtelierPageBand";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function displayClientName(name?: string) {
+  if (!name) return "Client DiagAutoSN";
+  return name.replace(/^QA Backend/i, "Client test");
+}
+
 export default async function AtelierClientsPage() {
   const session = await getSession();
   if (!session) redirect("/login?next=/atelier/clients");
@@ -16,8 +21,8 @@ export default async function AtelierClientsPage() {
   const clients = getAtelierClientsListFromDb();
 
   return (
-    <main className="min-h-[100dvh] py-8">
-      <div className="container-tight mb-6 flex items-center justify-between gap-4">
+    <main className="min-h-[100dvh] py-5 md:py-8">
+      <div className="container-tight mb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/atelier"
@@ -61,7 +66,7 @@ export default async function AtelierClientsPage() {
       />
 
       <div className="container-tight">
-        <div className="panel overflow-hidden rounded-[20px]">
+        <div className="panel max-h-[560px] overflow-y-auto rounded-[20px] md:max-h-[680px]">
           <div className="hidden grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr] border-b border-[var(--color-border)] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-fg-subtle)] md:grid">
             <span>Client</span>
             <span>Ville</span>
@@ -78,7 +83,7 @@ export default async function AtelierClientsPage() {
                   className="grid grid-cols-2 items-center gap-4 px-5 py-4 transition hover:bg-white/[0.03] md:grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr] md:px-6"
                 >
                   <div className="col-span-2 md:col-span-1">
-                    <p className="text-sm font-semibold text-[var(--color-fg)]">{c.fullName}</p>
+                    <p className="text-sm font-semibold text-[var(--color-fg)]">{displayClientName(c.fullName)}</p>
                     <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-fg-subtle)]">
                       {c.id}
                     </p>

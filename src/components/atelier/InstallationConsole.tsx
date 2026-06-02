@@ -36,6 +36,10 @@ type Props = {
 type ClientMode = "existing" | "new";
 type VehicleMode = "existing" | "new";
 
+function displayInstallText(value: string) {
+  return value.replace(/\bQA Backend\b/gi, "Client test").replace(/\bbackend\b/gi, "test");
+}
+
 export function InstallationConsole({ clients, initialInstallations }: Props) {
   const [clientMode, setClientMode] = useState<ClientMode>(clients.length > 0 ? "existing" : "new");
   const [vehicleMode, setVehicleMode] = useState<VehicleMode>("new");
@@ -47,7 +51,10 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
   const [copied, setCopied] = useState<"email" | "password" | null>(null);
 
   const sortedClients = useMemo(
-    () => [...clients].sort((a, b) => a.fullName.localeCompare(b.fullName)),
+    () =>
+      [...clients]
+        .map((client) => ({ ...client, fullName: displayInstallText(client.fullName) }))
+        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
     [clients]
   );
 
@@ -112,7 +119,13 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
       if (!response.ok || !body.ok || !body.result) {
         throw new Error(body.error || "Installation refusée.");
       }
-      setResult(body.result);
+      setResult({
+        ...body.result,
+        client: {
+          ...body.result.client,
+          fullName: displayInstallText(body.result.client.fullName),
+        },
+      });
       // refresh recent list
       const fresh = await fetch("/api/atelier/installations", { cache: "no-store" });
       if (fresh.ok) {
@@ -345,7 +358,7 @@ export function InstallationConsole({ clients, initialInstallations }: Props) {
                 <span>{row.entityId}</span>
                 <span>{row.createdAt.replace("T", " ").slice(0, 16)}</span>
               </div>
-              <p className="mt-1 text-sm leading-snug text-[var(--color-fg)]">{row.summary}</p>
+              <p className="mt-1 text-sm leading-snug text-[var(--color-fg)]">{displayInstallText(row.summary)}</p>
             </li>
           ))}
         </ul>
